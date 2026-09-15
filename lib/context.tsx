@@ -129,6 +129,12 @@ interface ADCareContextType {
   setIsAIOpen: (open: boolean) => void;
   aiMessages: AIMessage[];
   sendAIMessage: (text: string) => void;
+
+  // Sidebar State
+  isSidebarCollapsed: boolean;
+  setIsSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
+  isMobileSidebarOpen: boolean;
+  setIsMobileSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const ADCareContext = createContext<ADCareContextType | undefined>(undefined);
@@ -151,6 +157,10 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [timesheets, setTimesheets] = useState<TimesheetEntry[]>(INITIAL_TIMESHEETS);
   const [automationRules, setAutomationRules] = useState<AutomationRule[]>(INITIAL_AUTOMATION_RULES);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(INITIAL_AUDIT_LOGS);
+
+  // Sidebar State
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // AI Assistant
   const [isAIOpen, setIsAIOpen] = useState(false);
@@ -750,7 +760,8 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       getProfitAndLoss, getBalanceSheet, getTrialBalance, resetToDefaultData,
 
-      isAIOpen, setIsAIOpen, aiMessages, sendAIMessage
+      isAIOpen, setIsAIOpen, aiMessages, sendAIMessage,
+      isSidebarCollapsed, setIsSidebarCollapsed, isMobileSidebarOpen, setIsMobileSidebarOpen
     }}>
       {children}
     </ADCareContext.Provider>

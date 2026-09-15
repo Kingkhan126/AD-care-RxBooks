@@ -13,10 +13,9 @@ import { BrandLogo } from '@/components/ui/BrandLogo';
 
 export const Header: React.FC = () => {
   const pathname = usePathname();
-  const { orgSettings, setIsAIOpen, auditLogs } = useADCare();
+  const { orgSettings, setIsAIOpen, auditLogs, isSidebarCollapsed, isMobileSidebarOpen, setIsMobileSidebarOpen } = useADCare();
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Dynamic header title lookup based on path
   const getPageTitle = (path: string) => {
@@ -44,27 +43,19 @@ export const Header: React.FC = () => {
     return 'AD CARE — Meds & Pharmacy';
   };
 
-  const navLinks = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Customers', href: '/customers', icon: Users },
-    { name: 'Invoices', href: '/invoices', icon: Receipt },
-    { name: 'Vendor Bills', href: '/bills', icon: FileText },
-    { name: 'Products Catalog', href: '/items', icon: Package },
-    { name: 'Financial Reports', href: '/reports', icon: PieChart },
-    { name: 'Settings', href: '/settings', icon: Settings },
-  ];
-
   return (
     <>
-      <header className="h-16 bg-white border-b border-slate-200 fixed top-0 right-0 left-0 md:left-64 z-20 px-3 sm:px-6 flex items-center justify-between shadow-subtle">
+      <header className={`h-16 bg-white border-b border-slate-200 fixed top-0 right-0 left-0 transition-all duration-300 ease-in-out ${
+        isSidebarCollapsed ? 'md:left-20' : 'md:left-64'
+      } z-20 px-3 sm:px-6 flex items-center justify-between shadow-subtle`}>
         {/* Mobile Hamburger & Title */}
         <div className="flex items-center gap-2 sm:gap-3">
           <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-slate-700 hover:bg-slate-100 rounded-lg focus:outline-none"
-            aria-label="Toggle navigation"
+            onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+            className="md:hidden p-2 text-slate-700 hover:bg-slate-100 rounded-lg focus:outline-none transition-colors"
+            aria-label="Toggle navigation drawer"
           >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {isMobileSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
 
           <h1 className="text-sm sm:text-lg font-bold text-slate-900 font-sans tracking-tight truncate max-w-[180px] sm:max-w-none">
@@ -173,51 +164,6 @@ export const Header: React.FC = () => {
           </div>
         </div>
       </header>
-
-      {/* Mobile Navigation Drawer Backdrop */}
-      {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-xs flex">
-          <div className="w-64 bg-slate-900 text-slate-300 h-full p-4 flex flex-col shadow-2xl animate-in slide-in-from-left duration-200">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-              <BrandLogo size="sm" lightText={true} />
-              <button
-                onClick={() => setMobileMenuOpen(false)}
-                className="p-1 text-slate-400 hover:text-white"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <nav className="mt-4 space-y-1 overflow-y-auto flex-1 text-xs font-medium">
-              {navLinks.map((item) => {
-                const Icon = item.icon;
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-                      isActive
-                        ? 'bg-brand-600 text-white font-bold'
-                        : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4 shrink-0" />
-                    <span>{item.name}</span>
-                  </Link>
-                );
-              })}
-            </nav>
-
-            <div className="pt-4 border-t border-slate-800 text-[11px] text-slate-400">
-              <p className="font-semibold text-slate-200">{orgSettings.name}</p>
-              <p>Online Delivery & Pharmacy</p>
-            </div>
-          </div>
-          <div className="flex-1" onClick={() => setMobileMenuOpen(false)}></div>
-        </div>
-      )}
     </>
   );
 };
