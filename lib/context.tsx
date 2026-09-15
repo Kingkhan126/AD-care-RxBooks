@@ -151,8 +151,54 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   ]);
 
-  // Load from localStorage on mount (preserves updated user data)
+  // Load from PostgreSQL API routes on mount (with LocalStorage fallback)
   useEffect(() => {
+    async function loadFromPostgreSQL() {
+      try {
+        const [contactsRes, itemsRes, invoicesRes, billsRes, expensesRes, settingsRes, logsRes] = await Promise.all([
+          fetch('/api/contacts').catch(() => null),
+          fetch('/api/items').catch(() => null),
+          fetch('/api/invoices').catch(() => null),
+          fetch('/api/bills').catch(() => null),
+          fetch('/api/expenses').catch(() => null),
+          fetch('/api/settings').catch(() => null),
+          fetch('/api/audit-logs').catch(() => null)
+        ]);
+
+        if (contactsRes && contactsRes.ok) {
+          const data = await contactsRes.json();
+          if (Array.isArray(data) && data.length > 0) setContacts(data);
+        }
+        if (itemsRes && itemsRes.ok) {
+          const data = await itemsRes.json();
+          if (Array.isArray(data) && data.length > 0) setItems(data);
+        }
+        if (invoicesRes && invoicesRes.ok) {
+          const data = await invoicesRes.json();
+          if (Array.isArray(data)) setInvoices(data);
+        }
+        if (billsRes && billsRes.ok) {
+          const data = await billsRes.json();
+          if (Array.isArray(data)) setBills(data);
+        }
+        if (expensesRes && expensesRes.ok) {
+          const data = await expensesRes.json();
+          if (Array.isArray(data)) setExpenses(data);
+        }
+        if (settingsRes && settingsRes.ok) {
+          const data = await settingsRes.json();
+          if (data && data.name) setOrgSettings(data);
+        }
+        if (logsRes && logsRes.ok) {
+          const data = await logsRes.json();
+          if (Array.isArray(data)) setAuditLogs(data);
+        }
+      } catch (e) {
+        console.warn('PostgreSQL sync fetch notice:', e);
+      }
+    }
+
+    // First load from local storage
     try {
       const savedInvoices = localStorage.getItem('adcare_v4_invoices');
       if (savedInvoices) setInvoices(JSON.parse(savedInvoices));
@@ -171,37 +217,11 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       const savedOrgSettings = localStorage.getItem('adcare_v4_org_settings');
       if (savedOrgSettings) setOrgSettings(JSON.parse(savedOrgSettings));
-
-      const savedWarehouses = localStorage.getItem('adcare_v4_warehouses');
-      if (savedWarehouses) setWarehouses(JSON.parse(savedWarehouses));
-
-      const savedBankAccounts = localStorage.getItem('adcare_v4_bank_accounts');
-      if (savedBankAccounts) setBankAccounts(JSON.parse(savedBankAccounts));
-
-      const savedBankTransactions = localStorage.getItem('adcare_v4_bank_transactions');
-      if (savedBankTransactions) setBankTransactions(JSON.parse(savedBankTransactions));
-
-      const savedAccounts = localStorage.getItem('adcare_v4_accounts');
-      if (savedAccounts) setAccounts(JSON.parse(savedAccounts));
-
-      const savedJournalEntries = localStorage.getItem('adcare_v4_journal_entries');
-      if (savedJournalEntries) setJournalEntries(JSON.parse(savedJournalEntries));
-
-      const savedProjects = localStorage.getItem('adcare_v4_projects');
-      if (savedProjects) setProjects(JSON.parse(savedProjects));
-
-      const savedTimesheets = localStorage.getItem('adcare_v4_timesheets');
-      if (savedTimesheets) setTimesheets(JSON.parse(savedTimesheets));
-
-      const savedAutomationRules = localStorage.getItem('adcare_v4_automation_rules');
-      if (savedAutomationRules) setAutomationRules(JSON.parse(savedAutomationRules));
-
-      const savedAuditLogs = localStorage.getItem('adcare_v4_audit_logs');
-      if (savedAuditLogs) setAuditLogs(JSON.parse(savedAuditLogs));
     } catch (e) {
       console.warn('LocalStorage restoration error:', e);
     } finally {
       setIsLoaded(true);
+      loadFromPostgreSQL();
     }
   }, []);
 
@@ -258,6 +278,7 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const updateOrgSettings = (settings: Partial<OrganizationSettings>) => {
     setOrgSettings(prev => ({ ...prev, ...settings }));
+    fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(settings) }).catch(() => null);
     logAction('UPDATE_ORG_SETTINGS', 'Settings', 'Updated company profile details');
   };
 
@@ -268,25 +289,30 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       createdAt: new Date().toISOString().split('T')[0]
     };
     setContacts(prev => [newContact, ...prev]);
+    fetch('/api/contacts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newContact) }).catch(() => null);
     logAction('ADD_CONTACT', 'Contacts', `Added new ${contact.type}: ${contact.companyName}`);
   };
 
   const updateContact = (id: string, contactData: Partial<Contact>) => {
     setContacts(prev => prev.map(c => c.id === id ? { ...c, ...contactData } : c));
+    fetch('/api/contacts', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, ...contactData }) }).catch(() => null);
   };
 
   const deleteContact = (id: string) => {
     setContacts(prev => prev.filter(c => c.id !== id));
+    fetch(`/api/contacts?id=${encodeURIComponent(id)}`, { method: 'DELETE' }).catch(() => null);
   };
 
   const addItem = (item: Omit<Item, 'id'>) => {
     const newItem: Item = { ...item, id: `i_${Date.now()}` };
     setItems(prev => [newItem, ...prev]);
+    fetch('/api/items', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newItem) }).catch(() => null);
     logAction('ADD_ITEM', 'Inventory', `Added new item: ${item.name} (${item.sku})`);
   };
 
   const updateItem = (id: string, itemData: Partial<Item>) => {
     setItems(prev => prev.map(i => i.id === id ? { ...i, ...itemData } : i));
+    fetch('/api/items', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, ...itemData }) }).catch(() => null);
   };
 
   const addWarehouse = (wh: Omit<Warehouse, 'id'>) => {
@@ -307,6 +333,7 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       createdAt: new Date().toISOString().split('T')[0]
     };
     setInvoices(prev => [newInv, ...prev]);
+    fetch('/api/invoices', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newInv) }).catch(() => null);
 
     // Update customer receivables
     setContacts(prev => prev.map(c => c.id === invData.customerId ? { ...c, receivables: c.receivables + invData.totalAmount } : c));
@@ -337,7 +364,9 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           ? `Updated Invoice #${merged.invoiceNumber}. Reason: "${reason}"`
           : `Updated Invoice #${merged.invoiceNumber} details`;
         logAction('UPDATE_INVOICE', 'Sales', auditDetail);
-        return { ...merged, balanceDue, status };
+        const invResult = { ...merged, balanceDue, status };
+        fetch('/api/invoices', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, ...updatedData, status, balanceDue }) }).catch(() => null);
+        return invResult;
       }
       return inv;
     }));
@@ -345,12 +374,14 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const updateInvoiceStatus = (id: string, status: InvoiceStatus) => {
     setInvoices(prev => prev.map(inv => inv.id === id ? { ...inv, status } : inv));
+    fetch('/api/invoices', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, status }) }).catch(() => null);
   };
 
   const deleteInvoice = (id: string) => {
     const inv = invoices.find(i => i.id === id);
     if (inv) {
       setInvoices(prev => prev.filter(i => i.id !== id));
+      fetch(`/api/invoices?id=${encodeURIComponent(id)}`, { method: 'DELETE' }).catch(() => null);
       logAction('DELETE_INVOICE', 'Sales', `Deleted Invoice #${inv.invoiceNumber} (${inv.customerName})`);
     }
   };
@@ -390,6 +421,7 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       createdAt: new Date().toISOString().split('T')[0]
     };
     setBills(prev => [newBill, ...prev]);
+    fetch('/api/bills', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newBill) }).catch(() => null);
 
     // Update vendor payables
     setContacts(prev => prev.map(c => c.id === billData.vendorId ? { ...c, payables: c.payables + billData.totalAmount } : c));
@@ -416,6 +448,7 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           ? `Updated Bill #${merged.billNumber}. Reason: "${reason}"`
           : `Updated Bill #${merged.billNumber}`;
         logAction('UPDATE_BILL', 'Purchases', auditDetail);
+        fetch('/api/bills', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, ...updatedData, balanceDue }) }).catch(() => null);
         return { ...merged, balanceDue };
       }
       return b;
@@ -424,12 +457,14 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const updateBillStatus = (id: string, status: BillStatus) => {
     setBills(prev => prev.map(b => b.id === id ? { ...b, status } : b));
+    fetch('/api/bills', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, status }) }).catch(() => null);
   };
 
   const deleteBill = (id: string) => {
     const b = bills.find(item => item.id === id);
     if (b) {
       setBills(prev => prev.filter(item => item.id !== id));
+      fetch(`/api/bills?id=${encodeURIComponent(id)}`, { method: 'DELETE' }).catch(() => null);
       logAction('DELETE_BILL', 'Purchases', `Deleted Bill #${b.billNumber} (${b.vendorName})`);
     }
   };
@@ -443,6 +478,7 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       expenseNumber: expNum
     };
     setExpenses(prev => [newExpense, ...prev]);
+    fetch('/api/expenses', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newExpense) }).catch(() => null);
 
     // Update Bank Account balance
     setBankAccounts(prev => prev.map(ba => ba.id === 'ba1' ? { ...ba, balance: ba.balance - expData.amount } : ba));
@@ -498,13 +534,14 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const newLog: AuditLog = {
       id: `al_${Date.now()}`,
       timestamp: new Date().toLocaleString(),
-      userName: 'Alex Morgan (Admin)',
+      userName: 'Admin',
       action,
       module,
       details,
-      ipAddress: '192.168.1.104'
+      ipAddress: '127.0.0.1'
     };
     setAuditLogs(prev => [newLog, ...prev]);
+    fetch('/api/audit-logs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newLog) }).catch(() => null);
   };
 
   // Calculations
