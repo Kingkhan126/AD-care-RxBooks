@@ -154,49 +154,49 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Load from localStorage on mount (preserves updated user data)
   useEffect(() => {
     try {
-      const savedInvoices = localStorage.getItem('adcare_invoices');
+      const savedInvoices = localStorage.getItem('adcare_v4_invoices');
       if (savedInvoices) setInvoices(JSON.parse(savedInvoices));
 
-      const savedContacts = localStorage.getItem('adcare_contacts');
+      const savedContacts = localStorage.getItem('adcare_v4_contacts');
       if (savedContacts) setContacts(JSON.parse(savedContacts));
 
-      const savedItems = localStorage.getItem('adcare_items');
+      const savedItems = localStorage.getItem('adcare_v4_items');
       if (savedItems) setItems(JSON.parse(savedItems));
 
-      const savedBills = localStorage.getItem('adcare_bills');
+      const savedBills = localStorage.getItem('adcare_v4_bills');
       if (savedBills) setBills(JSON.parse(savedBills));
 
-      const savedExpenses = localStorage.getItem('adcare_expenses');
+      const savedExpenses = localStorage.getItem('adcare_v4_expenses');
       if (savedExpenses) setExpenses(JSON.parse(savedExpenses));
 
-      const savedOrgSettings = localStorage.getItem('adcare_org_settings');
+      const savedOrgSettings = localStorage.getItem('adcare_v4_org_settings');
       if (savedOrgSettings) setOrgSettings(JSON.parse(savedOrgSettings));
 
-      const savedWarehouses = localStorage.getItem('adcare_warehouses');
+      const savedWarehouses = localStorage.getItem('adcare_v4_warehouses');
       if (savedWarehouses) setWarehouses(JSON.parse(savedWarehouses));
 
-      const savedBankAccounts = localStorage.getItem('adcare_bank_accounts');
+      const savedBankAccounts = localStorage.getItem('adcare_v4_bank_accounts');
       if (savedBankAccounts) setBankAccounts(JSON.parse(savedBankAccounts));
 
-      const savedBankTransactions = localStorage.getItem('adcare_bank_transactions');
+      const savedBankTransactions = localStorage.getItem('adcare_v4_bank_transactions');
       if (savedBankTransactions) setBankTransactions(JSON.parse(savedBankTransactions));
 
-      const savedAccounts = localStorage.getItem('adcare_accounts');
+      const savedAccounts = localStorage.getItem('adcare_v4_accounts');
       if (savedAccounts) setAccounts(JSON.parse(savedAccounts));
 
-      const savedJournalEntries = localStorage.getItem('adcare_journal_entries');
+      const savedJournalEntries = localStorage.getItem('adcare_v4_journal_entries');
       if (savedJournalEntries) setJournalEntries(JSON.parse(savedJournalEntries));
 
-      const savedProjects = localStorage.getItem('adcare_projects');
+      const savedProjects = localStorage.getItem('adcare_v4_projects');
       if (savedProjects) setProjects(JSON.parse(savedProjects));
 
-      const savedTimesheets = localStorage.getItem('adcare_timesheets');
+      const savedTimesheets = localStorage.getItem('adcare_v4_timesheets');
       if (savedTimesheets) setTimesheets(JSON.parse(savedTimesheets));
 
-      const savedAutomationRules = localStorage.getItem('adcare_automation_rules');
+      const savedAutomationRules = localStorage.getItem('adcare_v4_automation_rules');
       if (savedAutomationRules) setAutomationRules(JSON.parse(savedAutomationRules));
 
-      const savedAuditLogs = localStorage.getItem('adcare_audit_logs');
+      const savedAuditLogs = localStorage.getItem('adcare_v4_audit_logs');
       if (savedAuditLogs) setAuditLogs(JSON.parse(savedAuditLogs));
     } catch (e) {
       console.warn('LocalStorage restoration error:', e);
@@ -209,21 +209,21 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     if (!isLoaded) return;
     try {
-      localStorage.setItem('adcare_invoices', JSON.stringify(invoices));
-      localStorage.setItem('adcare_contacts', JSON.stringify(contacts));
-      localStorage.setItem('adcare_items', JSON.stringify(items));
-      localStorage.setItem('adcare_bills', JSON.stringify(bills));
-      localStorage.setItem('adcare_expenses', JSON.stringify(expenses));
-      localStorage.setItem('adcare_org_settings', JSON.stringify(orgSettings));
-      localStorage.setItem('adcare_warehouses', JSON.stringify(warehouses));
-      localStorage.setItem('adcare_bank_accounts', JSON.stringify(bankAccounts));
-      localStorage.setItem('adcare_bank_transactions', JSON.stringify(bankTransactions));
-      localStorage.setItem('adcare_accounts', JSON.stringify(accounts));
-      localStorage.setItem('adcare_journal_entries', JSON.stringify(journalEntries));
-      localStorage.setItem('adcare_projects', JSON.stringify(projects));
-      localStorage.setItem('adcare_timesheets', JSON.stringify(timesheets));
-      localStorage.setItem('adcare_automation_rules', JSON.stringify(automationRules));
-      localStorage.setItem('adcare_audit_logs', JSON.stringify(auditLogs));
+      localStorage.setItem('adcare_v4_invoices', JSON.stringify(invoices));
+      localStorage.setItem('adcare_v4_contacts', JSON.stringify(contacts));
+      localStorage.setItem('adcare_v4_items', JSON.stringify(items));
+      localStorage.setItem('adcare_v4_bills', JSON.stringify(bills));
+      localStorage.setItem('adcare_v4_expenses', JSON.stringify(expenses));
+      localStorage.setItem('adcare_v4_org_settings', JSON.stringify(orgSettings));
+      localStorage.setItem('adcare_v4_warehouses', JSON.stringify(warehouses));
+      localStorage.setItem('adcare_v4_bank_accounts', JSON.stringify(bankAccounts));
+      localStorage.setItem('adcare_v4_bank_transactions', JSON.stringify(bankTransactions));
+      localStorage.setItem('adcare_v4_accounts', JSON.stringify(accounts));
+      localStorage.setItem('adcare_v4_journal_entries', JSON.stringify(journalEntries));
+      localStorage.setItem('adcare_v4_projects', JSON.stringify(projects));
+      localStorage.setItem('adcare_v4_timesheets', JSON.stringify(timesheets));
+      localStorage.setItem('adcare_v4_automation_rules', JSON.stringify(automationRules));
+      localStorage.setItem('adcare_v4_audit_logs', JSON.stringify(auditLogs));
     } catch (e) {
       console.warn('LocalStorage save error:', e);
     }
