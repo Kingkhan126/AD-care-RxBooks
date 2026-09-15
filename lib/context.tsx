@@ -610,9 +610,9 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       });
     });
 
-    // Vendor bills total
+    // Vendor bills total (inventory procurement stored into inventory asset, not instant COGS)
     const billsTotal = bills.reduce((acc, b) => acc + b.totalAmount, 0);
-    const totalProcurementCost = cogs + billsTotal;
+    const totalProcurementCost = cogs;
 
     // Direct logged expenses
     const directExpenses = expenses.reduce((acc, exp) => acc + exp.amount, 0);
