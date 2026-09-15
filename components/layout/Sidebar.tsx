@@ -108,7 +108,7 @@ export const Sidebar: React.FC = () => {
         >
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-cyan-200 animate-spin-slow" />
-            <span>RxBooks AI</span>
+            <span>AD CARE AI</span>
           </div>
           <ChevronRight className="w-3.5 h-3.5 text-white/70 group-hover:translate-x-0.5 transition-transform" />
         </button>

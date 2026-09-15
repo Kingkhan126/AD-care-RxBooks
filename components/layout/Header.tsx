@@ -17,28 +17,28 @@ export const Header: React.FC = () => {
 
   // Dynamic header title lookup based on path
   const getPageTitle = (path: string) => {
-    if (path.startsWith('/dashboard')) return 'AD Care RxBooks — Dashboard';
-    if (path.startsWith('/customers')) return 'AD Care RxBooks — Customers';
-    if (path.startsWith('/vendors')) return 'AD Care RxBooks — Vendors';
-    if (path.startsWith('/items')) return 'AD Care RxBooks — Products & Services';
-    if (path.startsWith('/inventory')) return 'AD Care RxBooks — Inventory & Warehouses';
-    if (path.startsWith('/quotes')) return 'AD Care RxBooks — Quotes & Estimates';
-    if (path.startsWith('/invoices')) return 'AD Care RxBooks — Invoices';
-    if (path.startsWith('/payments')) return 'AD Care RxBooks — Customer Payments';
-    if (path.startsWith('/credit-notes')) return 'AD Care RxBooks — Credit Notes';
-    if (path.startsWith('/purchase-orders')) return 'AD Care RxBooks — Purchase Orders';
-    if (path.startsWith('/bills')) return 'AD Care RxBooks — Vendor Bills';
-    if (path.startsWith('/expenses')) return 'AD Care RxBooks — Expense Log';
-    if (path.startsWith('/banking')) return 'AD Care RxBooks — Bank Accounts';
-    if (path.startsWith('/reconciliation')) return 'AD Care RxBooks — Bank Reconciliation';
-    if (path.startsWith('/chart-of-accounts')) return 'AD Care RxBooks — Chart of Accounts';
-    if (path.startsWith('/journal-entries')) return 'AD Care RxBooks — Journal Entries';
-    if (path.startsWith('/reports')) return 'AD Care RxBooks — Financial Reports';
-    if (path.startsWith('/projects')) return 'AD Care RxBooks — Projects & Timesheets';
-    if (path.startsWith('/automation')) return 'AD Care RxBooks — Automation';
-    if (path.startsWith('/audit-logs')) return 'AD Care RxBooks — Audit Trail';
-    if (path.startsWith('/settings')) return 'AD Care RxBooks — Organization Settings';
-    return 'AD Care RxBooks — Business Accounting & Management';
+    if (path.startsWith('/dashboard')) return 'AD CARE — Dashboard';
+    if (path.startsWith('/customers')) return 'AD CARE — Customers';
+    if (path.startsWith('/vendors')) return 'AD CARE — Vendors';
+    if (path.startsWith('/items')) return 'AD CARE — Products & Services';
+    if (path.startsWith('/inventory')) return 'AD CARE — Inventory & Warehouses';
+    if (path.startsWith('/quotes')) return 'AD CARE — Quotes & Estimates';
+    if (path.startsWith('/invoices')) return 'AD CARE — Invoices';
+    if (path.startsWith('/payments')) return 'AD CARE — Customer Payments';
+    if (path.startsWith('/credit-notes')) return 'AD CARE — Credit Notes';
+    if (path.startsWith('/purchase-orders')) return 'AD CARE — Purchase Orders';
+    if (path.startsWith('/bills')) return 'AD CARE — Vendor Bills';
+    if (path.startsWith('/expenses')) return 'AD CARE — Expense Log';
+    if (path.startsWith('/banking')) return 'AD CARE — Bank Accounts';
+    if (path.startsWith('/reconciliation')) return 'AD CARE — Bank Reconciliation';
+    if (path.startsWith('/chart-of-accounts')) return 'AD CARE — Chart of Accounts';
+    if (path.startsWith('/journal-entries')) return 'AD CARE — Journal Entries';
+    if (path.startsWith('/reports')) return 'AD CARE — Financial Reports';
+    if (path.startsWith('/projects')) return 'AD CARE — Projects & Timesheets';
+    if (path.startsWith('/automation')) return 'AD CARE — Automation';
+    if (path.startsWith('/audit-logs')) return 'AD CARE — Audit Trail';
+    if (path.startsWith('/settings')) return 'AD CARE — Organization Settings';
+    return 'AD CARE — Business Accounting & Management';
   };
 
   return (
@@ -120,7 +120,7 @@ export const Header: React.FC = () => {
           className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 rounded-lg text-xs font-semibold transition-colors"
         >
           <Sparkles className="w-3.5 h-3.5 text-indigo-600 animate-pulse" />
-          <span>RxBooks AI</span>
+          <span>AD CARE AI</span>
         </button>
 
         {/* Notifications */}

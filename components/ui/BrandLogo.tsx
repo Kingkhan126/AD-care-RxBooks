@@ -45,13 +45,10 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
         <div className={`font-black tracking-tight font-sans flex items-center gap-1 ${textSizes[size]}`}>
           <span className="text-[#3b558c] font-black">AD</span>
           <span className="text-[#61b849] font-black">CARE</span>
-          <span className={lightText ? 'text-slate-200 font-bold ml-0.5' : 'text-[#3b558c] font-bold ml-0.5'}>
-            RxBooks
-          </span>
         </div>
         {showSubtitle && (
           <div className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase">
-            Meds & Pharmacy SaaS
+            Meds & Pharmacy
           </div>
         )}
       </div>

@@ -9,8 +9,8 @@ import { AIAssistantDrawer } from '@/components/ai/AIAssistantDrawer';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'AD Care RxBooks — Business Accounting & Management',
-  description: 'AD Care RxBooks is a modern cloud-based business accounting and financial management platform designed to help businesses manage sales, purchases, expenses, inventory, banking, accounting, reporting, automation, and financial operations from one unified system.',
+  title: 'AD CARE — Meds & Pharmacy Business Accounting',
+  description: 'AD CARE is a modern cloud-based business accounting and financial management platform designed to help businesses manage sales, purchases, expenses, inventory, banking, accounting, reporting, automation, and financial operations from one unified system.',
   icons: {
     icon: '/favicon.ico',
   }

@@ -220,7 +220,7 @@ export const DocumentPrintModal: React.FC<DocumentPrintModalProps> = ({ document
             <div className="pt-4 border-t border-slate-300 flex items-center justify-between text-[10px] text-slate-500 uppercase tracking-widest">
               <div className="flex items-center gap-2">
                 <span>POWERED BY</span>
-                <span className="font-bold text-brand-600">AD Care RxBooks</span>
+                <span className="font-bold text-brand-600">AD CARE</span>
               </div>
               <div>1</div>
             </div>

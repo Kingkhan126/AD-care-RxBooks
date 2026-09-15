@@ -111,8 +111,8 @@ export default function NewInvoicePage() {
   const subtotal = lineItems.reduce((acc, row) => acc + row.amount, 0);
   const discountTotal = discountType === 'percentage' ? (subtotal * discountVal) / 100 : discountVal;
   const taxableAmount = Math.max(0, subtotal - discountTotal);
-  const taxTotal = taxableAmount * 0.10;
-  const totalAmount = taxableAmount + taxTotal + shippingCharges;
+  const taxTotal = 0;
+  const totalAmount = taxableAmount + shippingCharges;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -250,7 +250,7 @@ export default function NewInvoicePage() {
                       className="w-full p-2 border border-slate-200 rounded-lg bg-white font-medium"
                     >
                       {catalogItems.map(item => (
-                        <option key={item.id} value={item.id}>{item.name} (${item.salesPrice})</option>
+                        <option key={item.id} value={item.id}>{item.name} (PKR {item.salesPrice})</option>
                       ))}
                     </select>
                   </td>
@@ -273,7 +273,7 @@ export default function NewInvoicePage() {
                     />
                   </td>
                   <td className="p-2.5 text-right font-mono text-slate-500 font-semibold">{row.taxRate}%</td>
-                  <td className="p-2.5 text-right font-mono font-bold text-slate-900">${row.amount.toFixed(2)}</td>
+                  <td className="p-2.5 text-right font-mono font-bold text-slate-900">PKR {row.amount.toFixed(2)}</td>
                   <td className="p-2.5 text-center">
                     <button
                       type="button"
@@ -303,7 +303,7 @@ export default function NewInvoicePage() {
           <div className="w-80 space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
             <div className="flex justify-between items-center text-slate-600">
               <span className="font-semibold">Subtotal:</span>
-              <span className="font-mono font-bold">${subtotal.toFixed(2)}</span>
+              <span className="font-mono font-bold">PKR {subtotal.toFixed(2)}</span>
             </div>
 
             {/* Discount Option */}
@@ -315,7 +315,7 @@ export default function NewInvoicePage() {
                   onChange={(e) => setDiscountType(e.target.value as 'fixed' | 'percentage')}
                   className="p-1 bg-white border border-slate-200 rounded text-[11px] font-medium"
                 >
-                  <option value="fixed">$ Fixed</option>
+                  <option value="fixed">PKR Fixed</option>
                   <option value="percentage">% Percent</option>
                 </select>
               </div>
@@ -332,19 +332,13 @@ export default function NewInvoicePage() {
             {discountTotal > 0 && (
               <div className="flex justify-between text-emerald-600 text-[11px] font-medium">
                 <span>Discount Applied (-):</span>
-                <span className="font-mono font-bold">-${discountTotal.toFixed(2)}</span>
+                <span className="font-mono font-bold">-PKR {discountTotal.toFixed(2)}</span>
               </div>
             )}
 
-            {/* Tax */}
-            <div className="flex justify-between items-center text-slate-600">
-              <span>Sales Tax (10%):</span>
-              <span className="font-mono font-bold">${taxTotal.toFixed(2)}</span>
-            </div>
-
             {/* Shipping Charges */}
             <div className="flex justify-between items-center text-slate-700 font-semibold">
-              <span>Shipping & Freight ($):</span>
+              <span>Shipping & Freight (PKR):</span>
               <input
                 type="number"
                 min="0"
@@ -359,7 +353,7 @@ export default function NewInvoicePage() {
             {/* Final Total */}
             <div className="flex justify-between items-center text-base font-extrabold text-slate-900 border-t border-slate-300 pt-2">
               <span>Total Amount:</span>
-              <span className="font-mono text-brand-600">${totalAmount.toFixed(2)}</span>
+              <span className="font-mono text-brand-600">PKR {totalAmount.toFixed(2)}</span>
             </div>
           </div>
         </div>
