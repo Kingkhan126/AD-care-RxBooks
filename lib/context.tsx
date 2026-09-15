@@ -229,7 +229,16 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     // Update customer receivables
     setContacts(prev => prev.map(c => c.id === invData.customerId ? { ...c, receivables: c.receivables + invData.totalAmount } : c));
 
-    logAction('CREATE_INVOICE', 'Sales', `Created Invoice ${invNum} for ${invData.customerName} ($${invData.totalAmount.toLocaleString()})`);
+    // Update inventory stock on hand (decrease for sold items)
+    setItems(prevItems => prevItems.map(item => {
+      const line = invData.items.find(it => it.itemId === item.id);
+      if (line && item.type === 'product') {
+        return { ...item, stockOnHand: Math.max(0, item.stockOnHand - line.quantity) };
+      }
+      return item;
+    }));
+
+    logAction('CREATE_INVOICE', 'Sales', `Created Invoice ${invNum} for ${invData.customerName} (PKR ${invData.totalAmount.toLocaleString()})`);
     return newInv;
   };
 
@@ -302,6 +311,15 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     // Update vendor payables
     setContacts(prev => prev.map(c => c.id === billData.vendorId ? { ...c, payables: c.payables + billData.totalAmount } : c));
+
+    // Update inventory stock on hand (increase for purchased items)
+    setItems(prevItems => prevItems.map(item => {
+      const line = billData.items.find(it => it.itemId === item.id);
+      if (line && item.type === 'product') {
+        return { ...item, stockOnHand: item.stockOnHand + line.quantity };
+      }
+      return item;
+    }));
 
     logAction('CREATE_BILL', 'Purchases', `Created Bill ${billNum} for ${billData.vendorName} (PKR ${billData.totalAmount.toLocaleString()})`);
     return newBill;

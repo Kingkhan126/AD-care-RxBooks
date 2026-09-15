@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Users, Plus, Search, Mail, Phone, MapPin, Building2, Trash2, Edit2 } from 'lucide-react';
+import Link from 'next/link';
+import { Users, Plus, Search, Mail, Phone, MapPin, Building2, Trash2, Edit2, FileText, ArrowRight } from 'lucide-react';
 import { useADCare } from '@/lib/context';
 import { Contact } from '@/lib/types';
 
 export default function CustomersPage() {
-  const { contacts, addContact, updateContact, deleteContact } = useADCare();
+  const { contacts, invoices, addContact, updateContact, deleteContact, logAction } = useADCare();
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Contact | null>(null);
@@ -18,6 +19,7 @@ export default function CustomersPage() {
   const [phone, setPhone] = useState('');
   const [city, setCity] = useState('');
   const [country, setCountry] = useState('Pakistan');
+  const [auditReason, setAuditReason] = useState('');
 
   const customers = contacts.filter(c => c.type === 'customer' && (
     c.companyName.toLowerCase().includes(search.toLowerCase()) ||
@@ -33,6 +35,7 @@ export default function CustomersPage() {
     setPhone('');
     setCity('');
     setCountry('Pakistan');
+    setAuditReason('');
     setShowModal(true);
   };
 
@@ -44,7 +47,20 @@ export default function CustomersPage() {
     setPhone(customer.phone);
     setCity(customer.city);
     setCountry(customer.country);
+    setAuditReason('');
     setShowModal(true);
+  };
+
+  const handleDelete = (customer: Contact) => {
+    const reason = prompt(`Reason for deleting customer "${customer.companyName}" (Audit Trail Logging):`, 'Customer record removed by admin');
+    if (reason !== null) {
+      deleteContact(customer.id);
+      logAction(
+        'DELETE_CUSTOMER',
+        'Sales',
+        `Deleted Customer "${customer.companyName}". Audit Note: "${reason || 'No note provided'}"`
+      );
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -60,6 +76,11 @@ export default function CustomersPage() {
         city,
         country
       });
+      logAction(
+        'EDIT_CUSTOMER',
+        'Sales',
+        `Updated Customer profile "${companyName}". Reason: "${auditReason || 'Updated profile'}"`
+      );
     } else {
       addContact({
         name,
@@ -90,7 +111,7 @@ export default function CustomersPage() {
             Customer Directory
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Manage enterprise clients, payment terms, and uncollected receivables balance.
+            Manage enterprise clients, linked sales invoices, payment terms, and uncollected receivables.
           </p>
         </div>
 
@@ -119,12 +140,12 @@ export default function CustomersPage() {
 
       {/* Customers Table (Responsive Horizontal Scroll) */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-subtle overflow-x-auto">
-        <table className="w-full text-xs text-left min-w-[700px]">
+        <table className="w-full text-xs text-left min-w-[750px]">
           <thead className="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold tracking-wider border-b border-slate-200">
             <tr>
               <th className="p-4">Company Name</th>
               <th className="p-4">Primary Contact</th>
-              <th className="p-4">Contact Info</th>
+              <th className="p-4">Linked Activity</th>
               <th className="p-4">Location</th>
               <th className="p-4 text-right">Receivables Balance</th>
               <th className="p-4 text-center">Status</th>
@@ -132,55 +153,73 @@ export default function CustomersPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-slate-800">
-            {customers.map((c) => (
-              <tr key={c.id} className="hover:bg-slate-50/80 transition-colors">
-                <td className="p-4 font-bold text-slate-900">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center font-extrabold text-xs border border-slate-200 shrink-0">
-                      {c.companyName.charAt(0)}
+            {customers.map((c) => {
+              const customerInvoices = invoices.filter(
+                i => i.customerName.toLowerCase() === c.companyName.toLowerCase() || i.customerName.toLowerCase() === c.name.toLowerCase()
+              );
+              return (
+                <tr key={c.id} className="hover:bg-slate-50/80 transition-colors">
+                  <td className="p-4 font-bold text-slate-900">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center font-extrabold text-xs border border-slate-200 shrink-0">
+                        {c.companyName.charAt(0)}
+                      </div>
+                      <div>
+                        <div>{c.companyName}</div>
+                        <div className="text-[10px] text-slate-400 font-normal">ID: {c.id}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div>{c.companyName}</div>
-                      <div className="text-[10px] text-slate-400 font-normal">ID: {c.id}</div>
+                  </td>
+                  <td className="p-4 font-medium text-slate-700">
+                    <div>{c.name}</div>
+                    <div className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5"><Mail className="w-3 h-3" /> {c.email}</div>
+                  </td>
+                  <td className="p-4 text-slate-600">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 font-bold text-[10px] border border-brand-200 flex items-center gap-1">
+                        <FileText className="w-3 h-3" />
+                        {customerInvoices.length} Invoices
+                      </span>
+                      <Link
+                        href={`/invoices`}
+                        className="text-[10px] text-brand-600 hover:text-brand-800 font-semibold underline flex items-center gap-0.5"
+                      >
+                        + Create <ArrowRight className="w-3 h-3 inline" />
+                      </Link>
                     </div>
-                  </div>
-                </td>
-                <td className="p-4 font-medium text-slate-700">{c.name}</td>
-                <td className="p-4 text-slate-500">
-                  <div className="flex items-center gap-1.5"><Mail className="w-3 h-3 text-slate-400 shrink-0" /> {c.email}</div>
-                  <div className="flex items-center gap-1.5 mt-0.5"><Phone className="w-3 h-3 text-slate-400 shrink-0" /> {c.phone}</div>
-                </td>
-                <td className="p-4 text-slate-600">
-                  <div className="flex items-center gap-1"><MapPin className="w-3 h-3 text-slate-400 shrink-0" /> {c.city}, {c.country}</div>
-                </td>
-                <td className="p-4 text-right font-mono font-bold">
-                  <span className={c.receivables > 0 ? 'text-amber-600' : 'text-slate-700'}>
-                    PKR {c.receivables.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                  </span>
-                </td>
-                <td className="p-4 text-center">
-                  <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700">
-                    {c.status}
-                  </span>
-                </td>
-                <td className="p-4 text-right space-x-1">
-                  <button
-                    onClick={() => openEditModal(c)}
-                    className="p-1.5 text-slate-600 hover:text-brand-600 rounded-md hover:bg-brand-50 transition-colors"
-                    title="Edit Customer"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => deleteContact(c.id)}
-                    className="p-1.5 text-slate-400 hover:text-rose-600 rounded-md hover:bg-rose-50 transition-colors"
-                    title="Delete Customer"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                  <td className="p-4 text-slate-600">
+                    <div className="flex items-center gap-1"><MapPin className="w-3 h-3 text-slate-400 shrink-0" /> {c.city}, {c.country}</div>
+                  </td>
+                  <td className="p-4 text-right font-mono font-bold">
+                    <span className={c.receivables > 0 ? 'text-amber-600' : 'text-slate-700'}>
+                      PKR {c.receivables.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </span>
+                  </td>
+                  <td className="p-4 text-center">
+                    <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700">
+                      {c.status}
+                    </span>
+                  </td>
+                  <td className="p-4 text-right space-x-1">
+                    <button
+                      onClick={() => openEditModal(c)}
+                      className="p-1.5 text-slate-600 hover:text-brand-600 rounded-md hover:bg-brand-50 transition-colors"
+                      title="Edit Customer"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(c)}
+                      className="p-1.5 text-slate-400 hover:text-rose-600 rounded-md hover:bg-rose-50 transition-colors"
+                      title="Delete Customer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -260,6 +299,23 @@ export default function CustomersPage() {
                   />
                 </div>
               </div>
+
+              {editingCustomer && (
+                <div>
+                  <label className="font-bold text-amber-700 block mb-1">
+                    Reason for Editing / Modification Note (Audit Trail) *
+                  </label>
+                  <textarea
+                    rows={2}
+                    required
+                    value={auditReason}
+                    onChange={(e) => setAuditReason(e.target.value)}
+                    placeholder="Explain why this customer profile is being edited..."
+                    className="w-full p-2 border border-amber-300 bg-amber-50/50 rounded-lg text-slate-900 focus:ring-2 focus:ring-amber-500 outline-none"
+                  />
+                </div>
+              )}
+
               <div className="pt-3 flex items-center justify-end gap-2">
                 <button
                   type="button"

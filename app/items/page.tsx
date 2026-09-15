@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Package, Plus, Search, Edit2 } from 'lucide-react';
+import { Package, Plus, Search, Edit2, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
 import { useADCare } from '@/lib/context';
 import { Item } from '@/lib/types';
 
 export default function ItemsPage() {
-  const { items, addItem, updateItem } = useADCare();
+  const { items, invoices, bills, addItem, updateItem } = useADCare();
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
@@ -24,6 +24,29 @@ export default function ItemsPage() {
     i.name.toLowerCase().includes(search.toLowerCase()) ||
     i.sku.toLowerCase().includes(search.toLowerCase())
   ));
+
+  // Compute 2-Way Product Activity Coordination Metrics
+  const getItemStats = (itemId: string) => {
+    let soldQty = 0;
+    invoices.forEach(inv => {
+      inv.items.forEach(li => {
+        if (li.itemId === itemId || li.itemName.toLowerCase().includes(itemId.toLowerCase())) {
+          soldQty += li.quantity;
+        }
+      });
+    });
+
+    let boughtQty = 0;
+    bills.forEach(b => {
+      b.items.forEach(li => {
+        if (li.itemId === itemId || li.itemName.toLowerCase().includes(itemId.toLowerCase())) {
+          boughtQty += li.quantity;
+        }
+      });
+    });
+
+    return { soldQty, boughtQty };
+  };
 
   const openAddModal = () => {
     setEditingItem(null);
@@ -96,7 +119,7 @@ export default function ItemsPage() {
             Products & Services Catalog
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Maintain item prices, SKUs, inventory counts, and cost rates.
+            2-Way Coordinated Ledger: Real-time tracking of sales invoices, vendor purchases, stock counts, and margins.
           </p>
         </div>
 
@@ -123,9 +146,9 @@ export default function ItemsPage() {
         </div>
       </div>
 
-      {/* Catalog Table (Responsive Scroll) */}
+      {/* Catalog Table with Coordinated Stats (Responsive Scroll) */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-subtle overflow-x-auto">
-        <table className="w-full text-xs text-left min-w-[650px]">
+        <table className="w-full text-xs text-left min-w-[750px]">
           <thead className="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold tracking-wider border-b border-slate-200">
             <tr>
               <th className="p-4">SKU / Code</th>
@@ -133,48 +156,67 @@ export default function ItemsPage() {
               <th className="p-4">Type</th>
               <th className="p-4 text-right">Sales Price</th>
               <th className="p-4 text-right">Cost Price</th>
+              <th className="p-4 text-center">Invoiced / Purchased</th>
               <th className="p-4 text-center">Stock On Hand</th>
-              <th className="p-4 text-center">Status</th>
               <th className="p-4 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-slate-800">
-            {filteredItems.map((item) => (
-              <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                <td className="p-4 font-mono font-bold text-brand-600">{item.sku}</td>
-                <td className="p-4 font-semibold text-slate-900">{item.name}</td>
-                <td className="p-4">
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                    item.type === 'service' ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'
-                  }`}>
-                    {item.type}
-                  </span>
-                </td>
-                <td className="p-4 text-right font-mono font-bold text-slate-900">PKR {item.salesPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                <td className="p-4 text-right font-mono text-slate-500">PKR {item.costPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                <td className="p-4 text-center font-mono">
-                  {item.type === 'service' ? 'N/A' : (
-                    <span className={`font-bold ${item.stockOnHand <= item.reorderPoint ? 'text-rose-600' : 'text-slate-800'}`}>
-                      {item.stockOnHand} {item.unit}s
+            {filteredItems.map((item) => {
+              const { soldQty, boughtQty } = getItemStats(item.id);
+              const isLowStock = item.type === 'product' && item.stockOnHand <= item.reorderPoint;
+              return (
+                <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
+                  <td className="p-4 font-mono font-bold text-brand-600">{item.sku}</td>
+                  <td className="p-4 font-semibold text-slate-900">
+                    <div>{item.name}</div>
+                    <div className="text-[10px] text-slate-400 font-normal truncate max-w-xs">{item.description}</div>
+                  </td>
+                  <td className="p-4">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                      item.type === 'service' ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'
+                    }`}>
+                      {item.type}
                     </span>
-                  )}
-                </td>
-                <td className="p-4 text-center">
-                  <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700">
-                    {item.status}
-                  </span>
-                </td>
-                <td className="p-4 text-right">
-                  <button
-                    onClick={() => openEditModal(item)}
-                    className="p-1.5 text-slate-600 hover:text-brand-600 rounded-md hover:bg-brand-50 transition-colors"
-                    title="Edit Item"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                  <td className="p-4 text-right font-mono font-bold text-slate-900">
+                    PKR {item.salesPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </td>
+                  <td className="p-4 text-right font-mono text-slate-500">
+                    PKR {item.costPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </td>
+                  <td className="p-4 text-center">
+                    <div className="flex items-center justify-center gap-3 text-[11px] font-mono">
+                      <span className="text-emerald-700 font-semibold" title="Quantity Sold in Invoices">
+                        <TrendingUp className="w-3 h-3 inline mr-0.5" />{soldQty}
+                      </span>
+                      <span className="text-indigo-700 font-semibold" title="Quantity Bought in Vendor Bills">
+                        <TrendingDown className="w-3 h-3 inline mr-0.5" />{boughtQty}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="p-4 text-center font-mono">
+                    {item.type === 'service' ? (
+                      <span className="text-slate-400 font-medium">Service (N/A)</span>
+                    ) : (
+                      <span className={`font-bold inline-flex items-center gap-1 ${isLowStock ? 'text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200' : 'text-slate-800'}`}>
+                        {isLowStock && <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />}
+                        <span>{item.stockOnHand} {item.unit}s</span>
+                      </span>
+                    )}
+                  </td>
+                  <td className="p-4 text-right">
+                    <button
+                      onClick={() => openEditModal(item)}
+                      className="p-1.5 text-slate-600 hover:text-brand-600 rounded-md hover:bg-brand-50 transition-colors"
+                      title="Edit Item"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

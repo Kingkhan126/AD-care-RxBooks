@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Building2, Plus, Search, Mail, Phone, MapPin, Trash2, Edit2 } from 'lucide-react';
+import Link from 'next/link';
+import { Building2, Plus, Search, Mail, Phone, MapPin, Trash2, Edit2, FileCheck, ArrowRight } from 'lucide-react';
 import { useADCare } from '@/lib/context';
 import { Contact } from '@/lib/types';
 
 export default function VendorsPage() {
-  const { contacts, addContact, updateContact, deleteContact, logAction } = useADCare();
+  const { contacts, bills, addContact, updateContact, deleteContact, logAction } = useADCare();
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingVendor, setEditingVendor] = useState<Contact | null>(null);
@@ -44,6 +45,18 @@ export default function VendorsPage() {
     setCity(v.city);
     setAuditReason('');
     setShowModal(true);
+  };
+
+  const handleDelete = (vendor: Contact) => {
+    const reason = prompt(`Reason for deleting vendor "${vendor.companyName}" (Audit Trail Logging):`, 'Vendor record removed by admin');
+    if (reason !== null) {
+      deleteContact(vendor.id);
+      logAction(
+        'DELETE_VENDOR',
+        'Purchases',
+        `Deleted Vendor "${vendor.companyName}". Audit Note: "${reason || 'No note provided'}"`
+      );
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -93,7 +106,7 @@ export default function VendorsPage() {
             Vendor Directory
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Manage suppliers, service contractors, and outstanding payables balances.
+            Manage suppliers, service contractors, linked purchase vendor bills, and outstanding payables balances.
           </p>
         </div>
 
@@ -122,59 +135,77 @@ export default function VendorsPage() {
 
       {/* Vendors Table (Responsive Scroll) */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-subtle overflow-x-auto">
-        <table className="w-full text-xs text-left min-w-[650px]">
+        <table className="w-full text-xs text-left min-w-[700px]">
           <thead className="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold tracking-wider border-b border-slate-200">
             <tr>
               <th className="p-4">Vendor Company</th>
               <th className="p-4">Primary Contact</th>
-              <th className="p-4">Contact Details</th>
+              <th className="p-4">Linked Bills</th>
               <th className="p-4 text-right">Outstanding Payables</th>
               <th className="p-4 text-center">Status</th>
               <th className="p-4 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-slate-800">
-            {vendors.map((v) => (
-              <tr key={v.id} className="hover:bg-slate-50/80 transition-colors">
-                <td className="p-4 font-bold text-slate-900">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center font-extrabold text-xs border border-indigo-200 shrink-0">
-                      {v.companyName.charAt(0)}
+            {vendors.map((v) => {
+              const vendorBills = bills.filter(
+                b => b.vendorName.toLowerCase() === v.companyName.toLowerCase() || b.vendorName.toLowerCase() === v.name.toLowerCase()
+              );
+              return (
+                <tr key={v.id} className="hover:bg-slate-50/80 transition-colors">
+                  <td className="p-4 font-bold text-slate-900">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center font-extrabold text-xs border border-indigo-200 shrink-0">
+                        {v.companyName.charAt(0)}
+                      </div>
+                      <div>{v.companyName}</div>
                     </div>
-                    <div>{v.companyName}</div>
-                  </div>
-                </td>
-                <td className="p-4 font-medium text-slate-700">{v.name}</td>
-                <td className="p-4 text-slate-500">
-                  <div className="flex items-center gap-1.5"><Mail className="w-3 h-3 text-slate-400 shrink-0" /> {v.email}</div>
-                  <div className="flex items-center gap-1.5 mt-0.5"><Phone className="w-3 h-3 text-slate-400 shrink-0" /> {v.phone}</div>
-                </td>
-                <td className="p-4 text-right font-mono font-bold text-slate-900">
-                  PKR {v.payables.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                </td>
-                <td className="p-4 text-center">
-                  <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700">
-                    {v.status}
-                  </span>
-                </td>
-                <td className="p-4 text-right space-x-1">
-                  <button
-                    onClick={() => openEditModal(v)}
-                    className="p-1.5 text-slate-600 hover:text-indigo-600 rounded-md hover:bg-indigo-50 transition-colors"
-                    title="Edit Vendor"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => deleteContact(v.id)}
-                    className="p-1.5 text-slate-400 hover:text-rose-600 rounded-md hover:bg-rose-50 transition-colors"
-                    title="Delete Vendor"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                  <td className="p-4 font-medium text-slate-700">
+                    <div>{v.name}</div>
+                    <div className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5"><Mail className="w-3 h-3" /> {v.email}</div>
+                  </td>
+                  <td className="p-4 text-slate-600">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 font-bold text-[10px] border border-indigo-200 flex items-center gap-1">
+                        <FileCheck className="w-3 h-3" />
+                        {vendorBills.length} Bills
+                      </span>
+                      <Link
+                        href={`/bills`}
+                        className="text-[10px] text-indigo-600 hover:text-indigo-800 font-semibold underline flex items-center gap-0.5"
+                      >
+                        + Record <ArrowRight className="w-3 h-3 inline" />
+                      </Link>
+                    </div>
+                  </td>
+                  <td className="p-4 text-right font-mono font-bold text-slate-900">
+                    PKR {v.payables.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </td>
+                  <td className="p-4 text-center">
+                    <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700">
+                      {v.status}
+                    </span>
+                  </td>
+                  <td className="p-4 text-right space-x-1">
+                    <button
+                      onClick={() => openEditModal(v)}
+                      className="p-1.5 text-slate-600 hover:text-indigo-600 rounded-md hover:bg-indigo-50 transition-colors"
+                      title="Edit Vendor"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(v)}
+                      className="p-1.5 text-slate-400 hover:text-rose-600 rounded-md hover:bg-rose-50 transition-colors"
+                      title="Delete Vendor"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

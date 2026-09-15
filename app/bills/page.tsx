@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FileText, Plus, Search, Printer, Edit2, Trash2 } from 'lucide-react';
+import { FileText, Plus, Search, Printer, Edit2, Trash2, Package, Building2 } from 'lucide-react';
 import { useADCare } from '@/lib/context';
-import { Bill } from '@/lib/types';
+import { Bill, LineItem } from '@/lib/types';
 import { DocumentPrintModal } from '@/components/documents/DocumentPrintModal';
 
 export default function BillsPage() {
-  const { bills, contacts, addBill, updateBill, deleteBill } = useADCare();
+  const { bills, contacts, items: catalogItems, addBill, updateBill, deleteBill } = useADCare();
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingBill, setEditingBill] = useState<Bill | null>(null);
@@ -15,9 +15,24 @@ export default function BillsPage() {
 
   const vendors = contacts.filter(c => c.type === 'vendor');
   const [vendorId, setVendorId] = useState(vendors[0]?.id || '');
-  const [amount, setAmount] = useState<number>(1000);
-  const [description, setDescription] = useState('Monthly Service Contract');
   const [auditReason, setAuditReason] = useState('');
+
+  // Multi-line items for bill
+  const [billItems, setBillItems] = useState<LineItem[]>([
+    {
+      id: 'li_init',
+      itemId: catalogItems[0]?.id || 'item-serv',
+      itemName: catalogItems[0]?.name || 'Medical Supplies',
+      description: catalogItems[0]?.description || 'Supplier inventory batch',
+      quantity: 10,
+      unitPrice: catalogItems[0]?.costPrice || 500,
+      taxRate: 0,
+      amount: (10 * (catalogItems[0]?.costPrice || 500))
+    }
+  ]);
+
+  const subtotal = billItems.reduce((acc, it) => acc + (it.amount || 0), 0);
+  const totalAmount = subtotal;
 
   const filteredBills = bills.filter(b => (
     b.billNumber.toLowerCase().includes(search.toLowerCase()) ||
@@ -27,19 +42,95 @@ export default function BillsPage() {
   const openAddModal = () => {
     setEditingBill(null);
     setVendorId(vendors[0]?.id || '');
-    setAmount(1000);
-    setDescription('Monthly Service Contract');
     setAuditReason('');
+    setBillItems([
+      {
+        id: `li_${Date.now()}`,
+        itemId: catalogItems[0]?.id || 'item-serv',
+        itemName: catalogItems[0]?.name || 'Medical Supplies',
+        description: catalogItems[0]?.description || '',
+        quantity: 10,
+        unitPrice: catalogItems[0]?.costPrice || 500,
+        taxRate: 0,
+        amount: (10 * (catalogItems[0]?.costPrice || 500))
+      }
+    ]);
     setShowModal(true);
   };
 
   const openEditModal = (b: Bill) => {
     setEditingBill(b);
     setVendorId(b.vendorId);
-    setAmount(b.totalAmount);
-    setDescription(b.items[0]?.itemName || 'Vendor Bill');
+    setBillItems(b.items || []);
     setAuditReason('');
     setShowModal(true);
+  };
+
+  const handleProductSelect = (index: number, selectedItemId: string) => {
+    const itemObj = catalogItems.find(i => i.id === selectedItemId);
+    setBillItems(prev => prev.map((row, idx) => {
+      if (idx === index) {
+        const rate = itemObj ? itemObj.costPrice : row.unitPrice;
+        const name = itemObj ? itemObj.name : row.itemName;
+        const desc = itemObj ? itemObj.description : row.description;
+        return {
+          ...row,
+          itemId: selectedItemId,
+          itemName: name,
+          description: desc,
+          unitPrice: rate,
+          amount: row.quantity * rate
+        };
+      }
+      return row;
+    }));
+  };
+
+  const handleQtyChange = (index: number, qty: number) => {
+    setBillItems(prev => prev.map((row, idx) => {
+      if (idx === index) {
+        return {
+          ...row,
+          quantity: qty,
+          amount: qty * row.unitPrice
+        };
+      }
+      return row;
+    }));
+  };
+
+  const handlePriceChange = (index: number, price: number) => {
+    setBillItems(prev => prev.map((row, idx) => {
+      if (idx === index) {
+        return {
+          ...row,
+          unitPrice: price,
+          amount: row.quantity * price
+        };
+      }
+      return row;
+    }));
+  };
+
+  const addLineRow = () => {
+    const firstCat = catalogItems[0];
+    setBillItems(prev => [
+      ...prev,
+      {
+        id: `li_${Date.now()}`,
+        itemId: firstCat?.id || 'custom',
+        itemName: firstCat?.name || 'Pharmacy Stock Batch',
+        description: firstCat?.description || '',
+        quantity: 1,
+        unitPrice: firstCat?.costPrice || 1000,
+        taxRate: 0,
+        amount: firstCat?.costPrice || 1000
+      }
+    ]);
+  };
+
+  const removeLineRow = (index: number) => {
+    setBillItems(prev => prev.filter((_, idx) => idx !== index));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -53,25 +144,15 @@ export default function BillsPage() {
         {
           vendorId: v.id,
           vendorName: v.companyName,
-          items: [
-            {
-              id: editingBill.items[0]?.id || `bli_${Date.now()}`,
-              itemId: 'item-serv',
-              itemName: description,
-              description: 'Vendor service contract bill',
-              quantity: 1,
-              unitPrice: amount,
-              taxRate: 0,
-              amount: amount
-            }
-          ],
-          subtotal: amount,
+          items: billItems,
+          subtotal,
           taxTotal: 0,
           discountTotal: 0,
           shippingTotal: 0,
-          totalAmount: amount
+          totalAmount,
+          balanceDue: Math.max(0, totalAmount - editingBill.amountPaid)
         },
-        auditReason || 'Updated bill details'
+        auditReason || 'Updated bill items and amounts'
       );
     } else {
       addBill({
@@ -79,26 +160,15 @@ export default function BillsPage() {
         vendorName: v.companyName,
         issueDate: new Date().toISOString().split('T')[0],
         dueDate: new Date(Date.now() + 30*86400000).toISOString().split('T')[0],
-        items: [
-          {
-            id: `bli_${Date.now()}`,
-            itemId: 'item-serv',
-            itemName: description,
-            description: 'Vendor service contract bill',
-            quantity: 1,
-            unitPrice: amount,
-            taxRate: 0,
-            amount: amount
-          }
-        ],
-        subtotal: amount,
+        items: billItems,
+        subtotal,
         taxTotal: 0,
         discountTotal: 0,
         shippingTotal: 0,
-        totalAmount: amount,
+        totalAmount,
         amountPaid: 0,
-        balanceDue: amount,
-        notes: 'Vendor Bill received.'
+        balanceDue: totalAmount,
+        notes: 'Vendor Bill coordinated with inventory catalog.'
       });
     }
 
@@ -116,7 +186,7 @@ export default function BillsPage() {
             Vendor Bills
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Track incoming supplier bills, approval status, and accounts payable due dates.
+            Coordinated purchasing ledger: Pick vendors & products catalog items to auto-update payables & inventory stock.
           </p>
         </div>
 
@@ -201,50 +271,119 @@ export default function BillsPage() {
         </table>
       </div>
 
-      {/* Add / Edit Bill Modal */}
+      {/* Add / Edit Bill Modal with Catalog Coordination */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 shadow-2xl w-full max-w-md space-y-4 border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-2xl p-6 shadow-2xl w-full max-w-2xl space-y-4 border border-slate-200 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="font-bold text-slate-900 text-base">
-                {editingBill ? `Edit Bill ${editingBill.billNumber}` : 'Record Vendor Bill'}
+              <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-indigo-600" />
+                <span>{editingBill ? `Edit Bill ${editingBill.billNumber}` : 'Record Vendor Bill (Catalog Coordinated)'}</span>
               </h3>
               <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600">✕</button>
             </div>
-            <form onSubmit={handleSubmit} className="space-y-3 text-xs">
+            
+            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="font-semibold text-slate-700">Vendor *</label>
+                <label className="font-bold text-slate-700">Select Vendor *</label>
                 <select
                   value={vendorId}
                   onChange={(e) => setVendorId(e.target.value)}
-                  className="w-full mt-1 p-2 border border-slate-200 rounded-lg text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full mt-1 p-2 border border-slate-200 rounded-lg text-slate-900 font-semibold focus:ring-2 focus:ring-indigo-500 outline-none"
                 >
                   {vendors.map(v => (
-                    <option key={v.id} value={v.id}>{v.companyName}</option>
+                    <option key={v.id} value={v.id}>{v.companyName} (Payables: PKR {v.payables.toLocaleString()})</option>
                   ))}
                 </select>
               </div>
-              <div>
-                <label className="font-semibold text-slate-700">Bill Service Description</label>
-                <input
-                  type="text"
-                  required
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="e.g. Pharmaceutical Supply Shipment"
-                  className="w-full mt-1 p-2 border border-slate-200 rounded-lg text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none"
-                />
+
+              {/* Line Items Table linked to Product Catalog */}
+              <div className="space-y-2">
+                <label className="font-bold text-slate-700 flex items-center gap-1.5">
+                  <Package className="w-4 h-4 text-brand-600" />
+                  <span>Purchased Products & Catalog Line Items</span>
+                </label>
+                <div className="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/50 p-2">
+                  <table className="w-full text-xs text-left">
+                    <thead>
+                      <tr className="text-slate-500 text-[10px] font-bold uppercase border-b border-slate-200 pb-2">
+                        <th className="p-2">Catalog Product</th>
+                        <th className="p-2 w-20 text-center">Qty</th>
+                        <th className="p-2 w-28 text-right">Cost Rate</th>
+                        <th className="p-2 w-32 text-right">Amount</th>
+                        <th className="p-2 w-10 text-center"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                      {billItems.map((row, idx) => (
+                        <tr key={row.id || idx}>
+                          <td className="p-2">
+                            <select
+                              value={row.itemId}
+                              onChange={(e) => handleProductSelect(idx, e.target.value)}
+                              className="w-full p-1.5 border border-slate-200 rounded bg-white font-medium"
+                            >
+                              {catalogItems.map(item => (
+                                <option key={item.id} value={item.id}>
+                                  {item.name} (Cost: PKR {item.costPrice})
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          <td className="p-2">
+                            <input
+                              type="number"
+                              min="1"
+                              value={row.quantity}
+                              onChange={(e) => handleQtyChange(idx, parseFloat(e.target.value) || 1)}
+                              className="w-full p-1.5 text-center border border-slate-200 rounded bg-white font-mono font-bold"
+                            />
+                          </td>
+                          <td className="p-2">
+                            <input
+                              type="number"
+                              step="0.01"
+                              value={row.unitPrice}
+                              onChange={(e) => handlePriceChange(idx, parseFloat(e.target.value) || 0)}
+                              className="w-full p-1.5 text-right border border-slate-200 rounded bg-white font-mono font-bold"
+                            />
+                          </td>
+                          <td className="p-2 text-right font-mono font-bold text-slate-900">
+                            PKR {row.amount.toFixed(2)}
+                          </td>
+                          <td className="p-2 text-center">
+                            <button
+                              type="button"
+                              onClick={() => removeLineRow(idx)}
+                              className="p-1 text-slate-400 hover:text-rose-600"
+                            >
+                              ✕
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <div className="pt-2">
+                    <button
+                      type="button"
+                      onClick={addLineRow}
+                      className="px-3 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-slate-700 font-semibold"
+                    >
+                      + Add Item Row
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div>
-                <label className="font-semibold text-slate-700">Total Bill Amount (PKR)</label>
-                <input
-                  type="number"
-                  required
-                  step="0.01"
-                  value={amount}
-                  onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
-                  className="w-full mt-1 p-2 border border-slate-200 rounded-lg text-slate-900 font-mono focus:ring-2 focus:ring-indigo-500 outline-none"
-                />
+
+              {/* Total Calculation Display */}
+              <div className="flex justify-end pt-2">
+                <div className="w-64 space-y-1 text-right bg-indigo-50/60 p-3 rounded-xl border border-indigo-100">
+                  <div className="text-xs text-slate-600 font-semibold">Total Vendor Bill Amount:</div>
+                  <div className="text-lg font-black text-indigo-900 font-mono">
+                    PKR {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
+                </div>
               </div>
 
               {editingBill && (
@@ -263,7 +402,7 @@ export default function BillsPage() {
                 </div>
               )}
 
-              <div className="pt-3 flex items-center justify-end gap-2">
+              <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
@@ -275,7 +414,7 @@ export default function BillsPage() {
                   type="submit"
                   className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold shadow-sm transition-colors"
                 >
-                  {editingBill ? 'Update Bill' : 'Save Bill'}
+                  {editingBill ? 'Update Bill' : 'Record & Sync Vendor Bill'}
                 </button>
               </div>
             </form>
