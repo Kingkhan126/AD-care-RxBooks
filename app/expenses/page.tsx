@@ -96,7 +96,7 @@ export default function ExpensesPage() {
                 <td className="p-4 text-slate-600">{exp.vendorName || 'N/A'}</td>
                 <td className="p-4 text-slate-500">{exp.paymentMode}</td>
                 <td className="p-4 text-right font-mono font-bold text-slate-900">
-                  ${exp.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  PKR {exp.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </td>
               </tr>
             ))}
@@ -148,7 +148,7 @@ export default function ExpensesPage() {
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="font-semibold text-slate-700">Amount ($)</label>
+                  <label className="font-semibold text-slate-700">Amount (PKR)</label>
                   <input
                     type="number"
                     step="0.01"

@@ -234,9 +234,9 @@ export default function NewInvoicePage() {
               <tr className="bg-slate-900 text-white uppercase text-[10px] tracking-wider">
                 <th className="p-3 rounded-tl-lg">Item / Service</th>
                 <th className="p-3 w-24 text-center">Qty</th>
-                <th className="p-3 w-32 text-right">Unit Price ($)</th>
+                <th className="p-3 w-32 text-right">Unit Price (PKR)</th>
                 <th className="p-3 w-24 text-right">Tax</th>
-                <th className="p-3 w-32 text-right">Amount ($)</th>
+                <th className="p-3 w-32 text-right">Amount (PKR)</th>
                 <th className="p-3 w-12 text-center rounded-tr-lg"></th>
               </tr>
             </thead>

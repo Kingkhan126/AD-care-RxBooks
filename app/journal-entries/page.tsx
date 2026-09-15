@@ -145,7 +145,7 @@ export default function JournalEntriesPage() {
 
               <div className="flex items-center gap-3">
                 <span className="font-mono font-bold text-slate-900">
-                  Total Debit/Credit: ${je.totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  Total Debit/Credit: PKR {je.totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
                 <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700 uppercase">
                   {je.status}
@@ -160,8 +160,8 @@ export default function JournalEntriesPage() {
                   <tr className="text-slate-400 text-[10px] uppercase font-bold border-b border-slate-100">
                     <th className="pb-1">Account</th>
                     <th className="pb-1">Memo</th>
-                    <th className="pb-1 text-right">Debit ($)</th>
-                    <th className="pb-1 text-right">Credit ($)</th>
+                    <th className="pb-1 text-right">Debit (PKR)</th>
+                    <th className="pb-1 text-right">Credit (PKR)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -172,8 +172,8 @@ export default function JournalEntriesPage() {
                         {l.accountName}
                       </td>
                       <td className="py-1.5 text-slate-500">{l.memo}</td>
-                      <td className="py-1.5 text-right font-mono font-bold">{l.debit > 0 ? `$${l.debit.toFixed(2)}` : '-'}</td>
-                      <td className="py-1.5 text-right font-mono font-bold">{l.credit > 0 ? `$${l.credit.toFixed(2)}` : '-'}</td>
+                      <td className="py-1.5 text-right font-mono font-bold">{l.debit > 0 ? `PKR ${l.debit.toFixed(2)}` : '-'}</td>
+                      <td className="py-1.5 text-right font-mono font-bold">{l.credit > 0 ? `PKR ${l.credit.toFixed(2)}` : '-'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -242,8 +242,8 @@ export default function JournalEntriesPage() {
                   <thead>
                     <tr className="bg-slate-900 text-white uppercase text-[10px] tracking-wider">
                       <th className="p-2">Account</th>
-                      <th className="p-2 w-32 text-right">Debit ($)</th>
-                      <th className="p-2 w-32 text-right">Credit ($)</th>
+                      <th className="p-2 w-32 text-right">Debit (PKR)</th>
+                      <th className="p-2 w-32 text-right">Credit (PKR)</th>
                       <th className="p-2 w-8"></th>
                     </tr>
                   </thead>
@@ -304,7 +304,7 @@ export default function JournalEntriesPage() {
 
               {/* Total Balance Validation */}
               <div className="p-3 rounded-xl border flex items-center justify-between text-xs font-mono font-bold bg-slate-50">
-                <div>Total Debits: ${totalDebit.toFixed(2)} | Total Credits: ${totalCredit.toFixed(2)}</div>
+                <div>Total Debits: PKR {totalDebit.toFixed(2)} | Total Credits: PKR {totalCredit.toFixed(2)}</div>
                 <div className={`flex items-center gap-1 ${isBalanced ? 'text-emerald-600' : 'text-rose-600'}`}>
                   {isBalanced ? (
                     <>
@@ -314,7 +314,7 @@ export default function JournalEntriesPage() {
                   ) : (
                     <>
                       <ShieldAlert className="w-4 h-4" />
-                      <span>Out of Balance (${Math.abs(totalDebit - totalCredit).toFixed(2)})</span>
+                      <span>Out of Balance (PKR {Math.abs(totalDebit - totalCredit).toFixed(2)})</span>
                     </>
                   )}
                 </div>

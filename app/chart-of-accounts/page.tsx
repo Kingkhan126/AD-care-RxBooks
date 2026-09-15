@@ -126,7 +126,7 @@ export default function ChartOfAccountsPage() {
                 </td>
                 <td className="p-4 text-slate-600">{acc.type}</td>
                 <td className="p-4 text-right font-mono font-bold text-slate-900">
-                  ${acc.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  PKR {acc.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </td>
               </tr>
             ))}

@@ -52,7 +52,7 @@ export default function BankingPage() {
             <div>
               <div className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Current Book Balance</div>
               <div className="text-2xl font-extrabold text-slate-900 font-mono mt-1">
-                ${acc.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                PKR {acc.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </div>
             </div>
 
@@ -95,7 +95,7 @@ export default function BankingPage() {
                 <td className="p-4 text-slate-600 font-medium">{tx.category}</td>
                 <td className="p-4 font-mono text-slate-500 text-[11px]">{tx.reference}</td>
                 <td className={`p-4 text-right font-mono font-bold ${tx.amount >= 0 ? 'text-emerald-600' : 'text-slate-900'}`}>
-                  {tx.amount >= 0 ? `+${tx.amount.toFixed(2)}` : `${tx.amount.toFixed(2)}`}
+                  {tx.amount >= 0 ? `+PKR ${tx.amount.toFixed(2)}` : `-PKR ${Math.abs(tx.amount).toFixed(2)}`}
                 </td>
                 <td className="p-4 text-center">
                   <span className={`px-2.5 py-1 text-[10px] font-bold rounded-full ${
