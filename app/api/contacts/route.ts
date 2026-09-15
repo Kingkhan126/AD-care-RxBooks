@@ -1,14 +1,20 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
   try {
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json([]);
+    }
     const contacts = await prisma.contact.findMany({
       orderBy: { createdAt: 'desc' }
     });
     return NextResponse.json(contacts);
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Database unavailable' }, { status: 500 });
   }
 }
 
@@ -32,7 +38,7 @@ export async function POST(req: Request) {
     });
     return NextResponse.json(contact);
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Error creating contact' }, { status: 500 });
   }
 }
 
@@ -47,7 +53,7 @@ export async function PUT(req: Request) {
     });
     return NextResponse.json(updated);
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Error updating contact' }, { status: 500 });
   }
 }
 
@@ -60,6 +66,6 @@ export async function DELETE(req: Request) {
     await prisma.contact.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Error deleting contact' }, { status: 500 });
   }
 }

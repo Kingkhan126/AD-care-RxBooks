@@ -1,14 +1,20 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
   try {
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json([]);
+    }
     const items = await prisma.item.findMany({
       orderBy: { createdAt: 'desc' }
     });
     return NextResponse.json(items);
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Database unavailable' }, { status: 500 });
   }
 }
 
@@ -32,7 +38,7 @@ export async function POST(req: Request) {
     });
     return NextResponse.json(item);
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Error creating item' }, { status: 500 });
   }
 }
 
@@ -47,6 +53,6 @@ export async function PUT(req: Request) {
     });
     return NextResponse.json(updated);
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Error updating item' }, { status: 500 });
   }
 }

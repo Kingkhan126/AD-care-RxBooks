@@ -1,8 +1,18 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
   try {
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json({
+        summary: { salesRevenue: 0, cogs: 0, grossProfit: 0, operatingExpenses: 0, netProfit: 0 },
+        breakdown: [],
+        topSellingItems: []
+      });
+    }
     // 1. Fetch active (non-void) invoices with line items
     const invoices = await prisma.invoice.findMany({
       where: { status: { not: 'void' } },
