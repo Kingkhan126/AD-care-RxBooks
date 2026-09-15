@@ -39,11 +39,13 @@ interface ADCareContextType {
 
   invoices: Invoice[];
   addInvoice: (inv: Omit<Invoice, 'id' | 'createdAt' | 'invoiceNumber' | 'status'>) => Invoice;
+  updateInvoice: (id: string, updatedData: Partial<Invoice>) => void;
   updateInvoiceStatus: (id: string, status: InvoiceStatus) => void;
   recordInvoicePayment: (invoiceId: string, amount: number, mode: string) => void;
 
   bills: Bill[];
   addBill: (bill: Omit<Bill, 'id' | 'createdAt' | 'billNumber' | 'status'>) => Bill;
+  updateBill: (id: string, updatedData: Partial<Bill>) => void;
   updateBillStatus: (id: string, status: BillStatus) => void;
 
   expenses: Expense[];
@@ -229,6 +231,22 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return newInv;
   };
 
+  const updateInvoice = (id: string, updatedData: Partial<Invoice>) => {
+    setInvoices(prev => prev.map(inv => {
+      if (inv.id === id) {
+        const merged = { ...inv, ...updatedData };
+        const balanceDue = Math.max(0, merged.totalAmount - merged.amountPaid);
+        let status: InvoiceStatus = merged.status;
+        if (balanceDue === 0) status = 'paid';
+        else if (merged.amountPaid > 0) status = 'partially_paid';
+
+        logAction('UPDATE_INVOICE', 'Sales', `Updated Invoice #${merged.invoiceNumber} details`);
+        return { ...merged, balanceDue, status };
+      }
+      return inv;
+    }));
+  };
+
   const updateInvoiceStatus = (id: string, status: InvoiceStatus) => {
     setInvoices(prev => prev.map(inv => inv.id === id ? { ...inv, status } : inv));
   };
@@ -274,6 +292,18 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     logAction('CREATE_BILL', 'Purchases', `Created Bill ${billNum} for ${billData.vendorName} ($${billData.totalAmount.toLocaleString()})`);
     return newBill;
+  };
+
+  const updateBill = (id: string, updatedData: Partial<Bill>) => {
+    setBills(prev => prev.map(b => {
+      if (b.id === id) {
+        const merged = { ...b, ...updatedData };
+        const balanceDue = Math.max(0, merged.totalAmount - merged.amountPaid);
+        logAction('UPDATE_BILL', 'Purchases', `Updated Bill #${merged.billNumber}`);
+        return { ...merged, balanceDue };
+      }
+      return b;
+    }));
   };
 
   const updateBillStatus = (id: string, status: BillStatus) => {
@@ -469,8 +499,8 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       contacts, addContact, updateContact, deleteContact,
       items, addItem, updateItem,
       warehouses, addWarehouse,
-      invoices, addInvoice, updateInvoiceStatus, recordInvoicePayment,
-      bills, addBill, updateBillStatus,
+      invoices, addInvoice, updateInvoice, updateInvoiceStatus, recordInvoicePayment,
+      bills, addBill, updateBill, updateBillStatus,
       expenses, addExpense,
       bankAccounts, bankTransactions, reconcileTransaction,
       accounts, addAccount,
