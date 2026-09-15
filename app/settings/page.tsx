@@ -17,6 +17,7 @@ export default function SettingsPage() {
   const [address, setAddress] = useState(orgSettings.address);
   const [city, setCity] = useState(orgSettings.city);
   const [country, setCountry] = useState(orgSettings.country);
+  const [thankYouMessage, setThankYouMessage] = useState(orgSettings.thankYouMessage || 'Thank you for choosing AD CARE Meds & Pharmacy Online Home Service!');
 
   const handleReset = () => {
     if (confirm('Are you sure you want to reset all stored invoices, bills, customers, vendors, and inventory data back to factory defaults?')) {
@@ -36,7 +37,8 @@ export default function SettingsPage() {
       website,
       address,
       city,
-      country
+      country,
+      thankYouMessage
     });
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
@@ -168,6 +170,17 @@ export default function SettingsPage() {
                 className="w-full mt-1 p-2 border border-slate-200 rounded-lg text-slate-900"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="font-semibold text-slate-700">Official Invoice Thank You Message</label>
+            <input
+              type="text"
+              value={thankYouMessage}
+              onChange={(e) => setThankYouMessage(e.target.value)}
+              placeholder="e.g. Thank you for choosing AD CARE Meds & Pharmacy!"
+              className="w-full mt-1 p-2 border border-slate-200 rounded-lg text-slate-900 font-medium"
+            />
           </div>
         </div>
 

@@ -12,10 +12,11 @@ interface DocumentPrintModalProps {
 }
 
 export const DocumentPrintModal: React.FC<DocumentPrintModalProps> = ({ document: doc, type, onClose }) => {
-  const { orgSettings, updateInvoice, updateBill } = useADCare();
+  const { orgSettings, updateInvoice, updateBill, updateOrgSettings } = useADCare();
 
   const [isEditing, setIsEditing] = useState(false);
   const [logoSrc, setLogoSrc] = useState<string>('');
+  const [thankYouMsg, setThankYouMsg] = useState(orgSettings.thankYouMessage || 'Thank you for choosing AD CARE Meds & Pharmacy Online Home Service!');
 
   // Editable Document Fields
   const initialPartyName = type === 'invoice' ? (doc as Invoice).customerName : type === 'bill' ? (doc as Bill).vendorName : (doc as Quote).customerName;
@@ -132,6 +133,9 @@ export const DocumentPrintModal: React.FC<DocumentPrintModalProps> = ({ document
         },
         reasonText
       );
+    }
+    if (thankYouMsg !== orgSettings.thankYouMessage) {
+      updateOrgSettings({ thankYouMessage: thankYouMsg });
     }
     setIsEditing(false);
   };
@@ -552,17 +556,44 @@ export const DocumentPrintModal: React.FC<DocumentPrintModalProps> = ({ document
           </div>
 
           {/* 5. Footer & Legal Section */}
-          <div className="pt-8 space-y-8">
-            <div className="text-xs text-slate-600 font-medium">
-              Thanks you
-            </div>
+          <div className="pt-6 space-y-6">
+            {/* Flex container for Thank You message (left) and WhatsApp QR Code (right bottom corner) */}
+            <div className="flex items-end justify-between gap-4">
+              {/* Left Side: Thank You Message & Contact Details in Normal Clean Font */}
+              <div className="space-y-1.5 max-w-md">
+                <div className="text-xs sm:text-sm font-medium text-slate-800 leading-relaxed">
+                  {isEditing ? (
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-semibold text-slate-500 uppercase">Thank You Note (Editable):</label>
+                      <input
+                        type="text"
+                        value={thankYouMsg}
+                        onChange={(e) => setThankYouMsg(e.target.value)}
+                        className="w-full p-1.5 border border-slate-300 rounded text-xs font-normal text-slate-900 bg-white"
+                      />
+                    </div>
+                  ) : (
+                    <span>{thankYouMsg}</span>
+                  )}
+                </div>
 
-            <div className="space-y-1 text-center font-mono">
-              <div className="text-xs font-bold tracking-[0.25em] text-slate-800 uppercase">
-                A D C A R E  M E D S  &  P H A R M A C Y  O N L I N E  H O M E  D E L I V E R Y
+                <div className="text-xs font-normal text-slate-600 space-y-0.5">
+                  <div className="font-semibold text-slate-900">Adcare Meds & Pharmacy Online Home Service</div>
+                  <div>WhatsApp / Phone: <span className="font-mono font-medium text-slate-800">0342-3010508</span></div>
+                </div>
               </div>
-              <div className="text-xs tracking-[0.2em] text-slate-700">
-                W h a t s A p p :  0 3 4 2 - 3 0 1 0 5 0 8
+
+              {/* Right Side Bottom Corner: WhatsApp QR Code */}
+              <div className="flex flex-col items-center justify-end text-center shrink-0">
+                <div className="p-1 bg-white border border-slate-200 rounded-lg shadow-2xs inline-block">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/whatsapp-qr.png"
+                    alt="WhatsApp QR Code"
+                    className="w-20 h-20 sm:w-24 sm:h-24 object-contain rounded"
+                  />
+                </div>
+                <span className="text-[10px] font-semibold text-slate-500 mt-1">Scan for WhatsApp</span>
               </div>
             </div>
 

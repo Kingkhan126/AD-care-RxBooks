@@ -17,7 +17,8 @@ export const INITIAL_ORG_SETTINGS: OrganizationSettings = {
   fiscalYearStart: 'January',
   address: 'Peshawar, Khyber Pakhtunkhwa',
   city: 'Peshawar',
-  country: 'Pakistan'
+  country: 'Pakistan',
+  thankYouMessage: 'Thank you for choosing AD CARE Meds & Pharmacy Online Home Service!'
 };
 
 export const INITIAL_CONTACTS: Contact[] = [

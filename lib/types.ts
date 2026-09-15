@@ -304,4 +304,5 @@ export interface OrganizationSettings {
   city: string;
   country: string;
   logoUrl?: string;
+  thankYouMessage?: string;
 }
