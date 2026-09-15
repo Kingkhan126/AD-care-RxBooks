@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FileText, Plus, Search, Printer, Edit2 } from 'lucide-react';
+import { FileText, Plus, Search, Printer, Edit2, Trash2 } from 'lucide-react';
 import { useADCare } from '@/lib/context';
 import { Bill } from '@/lib/types';
 import { DocumentPrintModal } from '@/components/documents/DocumentPrintModal';
 
 export default function BillsPage() {
-  const { bills, contacts, addBill, updateBill } = useADCare();
+  const { bills, contacts, addBill, updateBill, deleteBill } = useADCare();
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingBill, setEditingBill] = useState<Bill | null>(null);
@@ -17,6 +17,7 @@ export default function BillsPage() {
   const [vendorId, setVendorId] = useState(vendors[0]?.id || '');
   const [amount, setAmount] = useState<number>(1000);
   const [description, setDescription] = useState('Monthly Service Contract');
+  const [auditReason, setAuditReason] = useState('');
 
   const filteredBills = bills.filter(b => (
     b.billNumber.toLowerCase().includes(search.toLowerCase()) ||
@@ -28,6 +29,7 @@ export default function BillsPage() {
     setVendorId(vendors[0]?.id || '');
     setAmount(1000);
     setDescription('Monthly Service Contract');
+    setAuditReason('');
     setShowModal(true);
   };
 
@@ -36,6 +38,7 @@ export default function BillsPage() {
     setVendorId(b.vendorId);
     setAmount(b.totalAmount);
     setDescription(b.items[0]?.itemName || 'Vendor Bill');
+    setAuditReason('');
     setShowModal(true);
   };
 
@@ -45,27 +48,31 @@ export default function BillsPage() {
     if (!v) return;
 
     if (editingBill) {
-      updateBill(editingBill.id, {
-        vendorId: v.id,
-        vendorName: v.companyName,
-        items: [
-          {
-            id: editingBill.items[0]?.id || `bli_${Date.now()}`,
-            itemId: 'item-serv',
-            itemName: description,
-            description: 'Vendor service contract bill',
-            quantity: 1,
-            unitPrice: amount,
-            taxRate: 0,
-            amount: amount
-          }
-        ],
-        subtotal: amount,
-        taxTotal: 0,
-        discountTotal: 0,
-        shippingTotal: 0,
-        totalAmount: amount
-      });
+      updateBill(
+        editingBill.id,
+        {
+          vendorId: v.id,
+          vendorName: v.companyName,
+          items: [
+            {
+              id: editingBill.items[0]?.id || `bli_${Date.now()}`,
+              itemId: 'item-serv',
+              itemName: description,
+              description: 'Vendor service contract bill',
+              quantity: 1,
+              unitPrice: amount,
+              taxRate: 0,
+              amount: amount
+            }
+          ],
+          subtotal: amount,
+          taxTotal: 0,
+          discountTotal: 0,
+          shippingTotal: 0,
+          totalAmount: amount
+        },
+        auditReason || 'Updated bill details'
+      );
     } else {
       addBill({
         vendorId: v.id,
@@ -180,6 +187,13 @@ export default function BillsPage() {
                   >
                     <Printer className="w-4 h-4" />
                   </button>
+                  <button
+                    onClick={() => deleteBill(b.id)}
+                    className="p-1.5 text-slate-400 hover:text-rose-600 rounded-md hover:bg-rose-50 transition-colors"
+                    title="Delete Bill"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </td>
               </tr>
             ))}
@@ -232,6 +246,23 @@ export default function BillsPage() {
                   className="w-full mt-1 p-2 border border-slate-200 rounded-lg text-slate-900 font-mono focus:ring-2 focus:ring-indigo-500 outline-none"
                 />
               </div>
+
+              {editingBill && (
+                <div>
+                  <label className="font-bold text-amber-700 block mb-1">
+                    Reason for Editing / Modification Note (Audit Log) *
+                  </label>
+                  <textarea
+                    rows={2}
+                    required
+                    value={auditReason}
+                    onChange={(e) => setAuditReason(e.target.value)}
+                    placeholder="Explain why this vendor bill is being edited..."
+                    className="w-full p-2 border border-amber-300 bg-amber-50/50 rounded-lg text-slate-900 focus:ring-2 focus:ring-amber-500 outline-none"
+                  />
+                </div>
+              )}
+
               <div className="pt-3 flex items-center justify-end gap-2">
                 <button
                   type="button"

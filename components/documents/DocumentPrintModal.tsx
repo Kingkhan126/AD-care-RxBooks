@@ -34,6 +34,8 @@ export const DocumentPrintModal: React.FC<DocumentPrintModalProps> = ({ document
   const [shippingTotal, setShippingTotal] = useState<number>('shippingTotal' in doc ? (doc as Invoice).shippingTotal || 0 : 0);
   const [amountPaid, setAmountPaid] = useState<number>('amountPaid' in doc ? (doc as Invoice).amountPaid || 0 : 0);
 
+  const [auditReason, setAuditReason] = useState('');
+
   const docNumber = type === 'invoice' ? (doc as Invoice).invoiceNumber : type === 'bill' ? (doc as Bill).billNumber : (doc as Quote).quoteNumber;
   const currency = orgSettings.currency || 'PKR';
 
@@ -95,32 +97,41 @@ export const DocumentPrintModal: React.FC<DocumentPrintModalProps> = ({ document
   };
 
   const handleSaveChanges = () => {
+    const reasonText = auditReason || 'Updated document fields';
     if (type === 'invoice') {
-      updateInvoice(doc.id, {
-        customerName: partyName,
-        issueDate,
-        dueDate,
-        items,
-        subtotal,
-        discountTotal,
-        shippingTotal,
-        totalAmount,
-        amountPaid,
-        balanceDue,
-        terms
-      });
+      updateInvoice(
+        doc.id,
+        {
+          customerName: partyName,
+          issueDate,
+          dueDate,
+          items,
+          subtotal,
+          discountTotal,
+          shippingTotal,
+          totalAmount,
+          amountPaid,
+          balanceDue,
+          terms
+        },
+        reasonText
+      );
     } else if (type === 'bill') {
-      updateBill(doc.id, {
-        vendorName: partyName,
-        issueDate,
-        dueDate,
-        items,
-        subtotal,
-        totalAmount,
-        amountPaid,
-        balanceDue,
-        terms
-      });
+      updateBill(
+        doc.id,
+        {
+          vendorName: partyName,
+          issueDate,
+          dueDate,
+          items,
+          subtotal,
+          totalAmount,
+          amountPaid,
+          balanceDue,
+          terms
+        },
+        reasonText
+      );
     }
     setIsEditing(false);
   };
@@ -140,46 +151,61 @@ export const DocumentPrintModal: React.FC<DocumentPrintModalProps> = ({ document
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl overflow-hidden my-4 print:shadow-none print:m-0 print:w-full print:max-w-none">
         
         {/* Printable Control Bar (Hidden on print) */}
-        <div className="p-4 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-3 print:hidden">
-          <div className="flex items-center gap-2 font-bold text-sm">
-            <Building2 className="w-4 h-4 text-brand-400" />
-            <span>AD CARE Official {type === 'bill' ? 'Vendor Bill' : 'Invoice'} Customizer</span>
+        <div className="p-4 bg-slate-900 text-white space-y-3 print:hidden">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2 font-bold text-sm">
+              <Building2 className="w-4 h-4 text-brand-400" />
+              <span>AD CARE Official {type === 'bill' ? 'Vendor Bill' : 'Invoice'} Customizer</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {isEditing ? (
+                <button
+                  onClick={handleSaveChanges}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold shadow-md transition-colors"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Save Changes</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold shadow-md transition-colors"
+                >
+                  <Edit3 className="w-4 h-4" />
+                  <span>Edit Document</span>
+                </button>
+              )}
+
+              <button
+                onClick={handlePrint}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-bold shadow-md transition-colors"
+              >
+                <Printer className="w-4 h-4" />
+                <span>Print / Download PDF</span>
+              </button>
+
+              <button
+                onClick={onClose}
+                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {isEditing ? (
-              <button
-                onClick={handleSaveChanges}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold shadow-md transition-colors"
-              >
-                <Check className="w-4 h-4" />
-                <span>Save Changes</span>
-              </button>
-            ) : (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold shadow-md transition-colors"
-              >
-                <Edit3 className="w-4 h-4" />
-                <span>Edit Document</span>
-              </button>
-            )}
-
-            <button
-              onClick={handlePrint}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-bold shadow-md transition-colors"
-            >
-              <Printer className="w-4 h-4" />
-              <span>Print / Download PDF</span>
-            </button>
-
-            <button
-              onClick={onClose}
-              className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+          {isEditing && (
+            <div className="bg-amber-950/80 border border-amber-500/40 rounded-lg p-2.5 flex items-center gap-3 text-xs animate-in fade-in duration-150">
+              <span className="font-bold text-amber-300 shrink-0">Reason for Editing (Audit Note):</span>
+              <input
+                type="text"
+                value={auditReason}
+                onChange={(e) => setAuditReason(e.target.value)}
+                placeholder="Explain why you are modifying this document..."
+                className="flex-1 bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-white placeholder-slate-400 text-xs focus:ring-1 focus:ring-amber-400 outline-none"
+              />
+            </div>
+          )}
         </div>
 
         {/* Printable Document Paper */}

@@ -39,14 +39,16 @@ interface ADCareContextType {
 
   invoices: Invoice[];
   addInvoice: (inv: Omit<Invoice, 'id' | 'createdAt' | 'invoiceNumber' | 'status'>) => Invoice;
-  updateInvoice: (id: string, updatedData: Partial<Invoice>) => void;
+  updateInvoice: (id: string, updatedData: Partial<Invoice>, reason?: string) => void;
   updateInvoiceStatus: (id: string, status: InvoiceStatus) => void;
+  deleteInvoice: (id: string) => void;
   recordInvoicePayment: (invoiceId: string, amount: number, mode: string) => void;
 
   bills: Bill[];
   addBill: (bill: Omit<Bill, 'id' | 'createdAt' | 'billNumber' | 'status'>) => Bill;
-  updateBill: (id: string, updatedData: Partial<Bill>) => void;
+  updateBill: (id: string, updatedData: Partial<Bill>, reason?: string) => void;
   updateBillStatus: (id: string, status: BillStatus) => void;
+  deleteBill: (id: string) => void;
 
   expenses: Expense[];
   addExpense: (exp: Omit<Expense, 'id' | 'expenseNumber'>) => void;
@@ -231,7 +233,7 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return newInv;
   };
 
-  const updateInvoice = (id: string, updatedData: Partial<Invoice>) => {
+  const updateInvoice = (id: string, updatedData: Partial<Invoice>, reason?: string) => {
     setInvoices(prev => prev.map(inv => {
       if (inv.id === id) {
         const merged = { ...inv, ...updatedData };
@@ -240,7 +242,10 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         if (balanceDue === 0) status = 'paid';
         else if (merged.amountPaid > 0) status = 'partially_paid';
 
-        logAction('UPDATE_INVOICE', 'Sales', `Updated Invoice #${merged.invoiceNumber} details`);
+        const auditDetail = reason
+          ? `Updated Invoice #${merged.invoiceNumber}. Reason: "${reason}"`
+          : `Updated Invoice #${merged.invoiceNumber} details`;
+        logAction('UPDATE_INVOICE', 'Sales', auditDetail);
         return { ...merged, balanceDue, status };
       }
       return inv;
@@ -249,6 +254,14 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const updateInvoiceStatus = (id: string, status: InvoiceStatus) => {
     setInvoices(prev => prev.map(inv => inv.id === id ? { ...inv, status } : inv));
+  };
+
+  const deleteInvoice = (id: string) => {
+    const inv = invoices.find(i => i.id === id);
+    if (inv) {
+      setInvoices(prev => prev.filter(i => i.id !== id));
+      logAction('DELETE_INVOICE', 'Sales', `Deleted Invoice #${inv.invoiceNumber} (${inv.customerName})`);
+    }
   };
 
   const recordInvoicePayment = (invoiceId: string, amount: number, mode: string) => {
@@ -261,7 +274,7 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         // Update customer balance
         setContacts(cList => cList.map(c => c.id === inv.customerId ? { ...c, receivables: Math.max(0, c.receivables - amount) } : c));
 
-        logAction('RECORD_PAYMENT', 'Sales', `Recorded payment of $${amount.toLocaleString()} for Invoice ${inv.invoiceNumber}`);
+        logAction('RECORD_PAYMENT', 'Sales', `Recorded payment of PKR ${amount.toLocaleString()} for Invoice ${inv.invoiceNumber}`);
         return {
           ...inv,
           amountPaid: newPaid,
@@ -290,16 +303,19 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     // Update vendor payables
     setContacts(prev => prev.map(c => c.id === billData.vendorId ? { ...c, payables: c.payables + billData.totalAmount } : c));
 
-    logAction('CREATE_BILL', 'Purchases', `Created Bill ${billNum} for ${billData.vendorName} ($${billData.totalAmount.toLocaleString()})`);
+    logAction('CREATE_BILL', 'Purchases', `Created Bill ${billNum} for ${billData.vendorName} (PKR ${billData.totalAmount.toLocaleString()})`);
     return newBill;
   };
 
-  const updateBill = (id: string, updatedData: Partial<Bill>) => {
+  const updateBill = (id: string, updatedData: Partial<Bill>, reason?: string) => {
     setBills(prev => prev.map(b => {
       if (b.id === id) {
         const merged = { ...b, ...updatedData };
         const balanceDue = Math.max(0, merged.totalAmount - merged.amountPaid);
-        logAction('UPDATE_BILL', 'Purchases', `Updated Bill #${merged.billNumber}`);
+        const auditDetail = reason
+          ? `Updated Bill #${merged.billNumber}. Reason: "${reason}"`
+          : `Updated Bill #${merged.billNumber}`;
+        logAction('UPDATE_BILL', 'Purchases', auditDetail);
         return { ...merged, balanceDue };
       }
       return b;
@@ -308,6 +324,14 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const updateBillStatus = (id: string, status: BillStatus) => {
     setBills(prev => prev.map(b => b.id === id ? { ...b, status } : b));
+  };
+
+  const deleteBill = (id: string) => {
+    const b = bills.find(item => item.id === id);
+    if (b) {
+      setBills(prev => prev.filter(item => item.id !== id));
+      logAction('DELETE_BILL', 'Purchases', `Deleted Bill #${b.billNumber} (${b.vendorName})`);
+    }
   };
 
   const addExpense = (expData: Omit<Expense, 'id' | 'expenseNumber'>) => {
@@ -499,8 +523,8 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       contacts, addContact, updateContact, deleteContact,
       items, addItem, updateItem,
       warehouses, addWarehouse,
-      invoices, addInvoice, updateInvoice, updateInvoiceStatus, recordInvoicePayment,
-      bills, addBill, updateBill, updateBillStatus,
+      invoices, addInvoice, updateInvoice, updateInvoiceStatus, deleteInvoice, recordInvoicePayment,
+      bills, addBill, updateBill, updateBillStatus, deleteBill,
       expenses, addExpense,
       bankAccounts, bankTransactions, reconcileTransaction,
       accounts, addAccount,

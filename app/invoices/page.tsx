@@ -8,7 +8,7 @@ import { Invoice } from '@/lib/types';
 import { DocumentPrintModal } from '@/components/documents/DocumentPrintModal';
 
 export default function InvoicesPage() {
-  const { invoices, updateInvoice, recordInvoicePayment } = useADCare();
+  const { invoices, updateInvoice, deleteInvoice, recordInvoicePayment } = useADCare();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedDoc, setSelectedDoc] = useState<Invoice | null>(null);
@@ -25,6 +25,7 @@ export default function InvoicesPage() {
   const [editDueDate, setEditDueDate] = useState('');
   const [editDiscountTotal, setEditDiscountTotal] = useState<number>(0);
   const [editShippingTotal, setEditShippingTotal] = useState<number>(0);
+  const [auditReason, setAuditReason] = useState('');
 
   const filteredInvoices = invoices.filter(inv => {
     const matchesSearch = inv.invoiceNumber.toLowerCase().includes(search.toLowerCase()) ||
@@ -52,6 +53,7 @@ export default function InvoicesPage() {
     setEditDueDate(inv.dueDate);
     setEditDiscountTotal(inv.discountTotal || 0);
     setEditShippingTotal(inv.shippingTotal || 0);
+    setAuditReason('');
   };
 
   const handleSaveEdit = (e: React.FormEvent) => {
@@ -61,15 +63,19 @@ export default function InvoicesPage() {
     const subtotal = editingInvoice.subtotal;
     const totalAmount = Math.max(0, subtotal - editDiscountTotal + editShippingTotal);
 
-    updateInvoice(editingInvoice.id, {
-      customerName: editCustomerName,
-      issueDate: editIssueDate,
-      dueDate: editDueDate,
-      discountTotal: editDiscountTotal,
-      shippingTotal: editShippingTotal,
-      totalAmount,
-      balanceDue: Math.max(0, totalAmount - editingInvoice.amountPaid)
-    });
+    updateInvoice(
+      editingInvoice.id,
+      {
+        customerName: editCustomerName,
+        issueDate: editIssueDate,
+        dueDate: editDueDate,
+        discountTotal: editDiscountTotal,
+        shippingTotal: editShippingTotal,
+        totalAmount,
+        balanceDue: Math.max(0, totalAmount - editingInvoice.amountPaid)
+      },
+      auditReason || 'Updated invoice details'
+    );
 
     setEditingInvoice(null);
   };
@@ -194,6 +200,13 @@ export default function InvoicesPage() {
                     title="View & Print Branded PDF"
                   >
                     <Printer className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => deleteInvoice(inv.id)}
+                    className="p-1.5 text-slate-400 hover:text-rose-600 rounded-md hover:bg-rose-50 transition-colors"
+                    title="Delete Invoice"
+                  >
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </td>
               </tr>
@@ -326,6 +339,21 @@ export default function InvoicesPage() {
                   />
                 </div>
               </div>
+
+              <div>
+                <label className="font-bold text-amber-700 block mb-1">
+                  Reason for Editing / Modification Note (Audit Trail) *
+                </label>
+                <textarea
+                  rows={2}
+                  required
+                  value={auditReason}
+                  onChange={(e) => setAuditReason(e.target.value)}
+                  placeholder="Explain why this invoice is being edited..."
+                  className="w-full p-2 border border-amber-300 bg-amber-50/50 rounded-lg text-slate-900 focus:ring-2 focus:ring-amber-500 outline-none"
+                />
+              </div>
+
               <div className="pt-3 flex items-center justify-end gap-2">
                 <button
                   type="button"
