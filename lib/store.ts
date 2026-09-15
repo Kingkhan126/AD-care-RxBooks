@@ -6,18 +6,18 @@ import {
 } from './types';
 
 export const INITIAL_ORG_SETTINGS: OrganizationSettings = {
-  name: 'AD Care RxBooks Enterprise',
-  legalName: 'AD Care RxBooks Financial Technologies Inc.',
-  tagline: 'Production Cloud Accounting & Financial Operations',
-  taxId: 'US-984712093-TX',
-  email: 'finance@adcarerxbooks.com',
-  phone: '+1 (800) 555-ADCARE',
+  name: 'Adcare Meds & Pharmacy Online Home Service',
+  legalName: 'AD CARE Meds & Pharmacy',
+  tagline: 'Online Home Delivery & Pharmacy Service',
+  taxId: 'PK-984712093',
+  email: 'info@adcare.pk',
+  phone: '0342-3010508',
   website: 'https://adcarerxbooks.com',
-  currency: 'USD',
+  currency: 'PKR',
   fiscalYearStart: 'January',
-  address: '100 Financial Center Blvd, Suite 400',
-  city: 'San Francisco, CA 94105',
-  country: 'United States'
+  address: 'Peshawar, Khyber Pakhtunkhwa',
+  city: 'Peshawar',
+  country: 'Pakistan'
 };
 
 export const INITIAL_CONTACTS: Contact[] = [
@@ -179,27 +179,27 @@ export const INITIAL_WAREHOUSES: Warehouse[] = [
 export const INITIAL_INVOICES: Invoice[] = [
   {
     id: 'inv1',
-    invoiceNumber: 'INV-2026-001',
-    customerId: 'c1',
-    customerName: 'Apex Global Systems',
-    customerEmail: 's.connor@apexglobal.com',
-    issueDate: '2026-08-01',
-    dueDate: '2026-08-31',
+    invoiceNumber: 'INV-0000078',
+    customerId: 'c_gul',
+    customerName: 'Gul jana',
+    customerEmail: 'guljana@homepatient.pk',
+    issueDate: '2026-09-01',
+    dueDate: '2026-09-01',
     items: [
-      { id: 'li1', itemId: 'i1', itemName: 'AD CARE Enterprise Cloud Platform License', description: '20 seats annual subscription', quantity: 20, unitPrice: 450.00, taxRate: 10, amount: 9000.00 },
-      { id: 'li2', itemId: 'i2', itemName: 'Implementation & Managed Onboarding', description: 'ERP Integration', quantity: 1, unitPrice: 3500.00, taxRate: 10, amount: 3500.00 }
+      { id: 'li1', itemId: 'i_meroget', itemName: 'Inj Meropenem 1g (Meroget)', description: '', quantity: 6.00, unitPrice: 1600.00, taxRate: 0, amount: 9600.00 },
+      { id: 'li2', itemId: 'i_vinjec', itemName: 'Inj Vancomycin 1g (Vinjec)', description: '', quantity: 1.00, unitPrice: 1000.00, taxRate: 0, amount: 1000.00 }
     ],
-    subtotal: 12500.00,
-    taxTotal: 1250.00,
+    subtotal: 10600.00,
+    taxTotal: 0,
     discountTotal: 0,
     shippingTotal: 0,
-    totalAmount: 13750.00,
-    amountPaid: 0.00,
-    balanceDue: 13750.00,
-    status: 'overdue',
-    notes: 'Thank you for choosing AD CARE for your corporate financial operations.',
-    terms: 'Payment due within 30 days via Direct Bank Transfer or Credit Card.',
-    createdAt: '2026-08-01'
+    totalAmount: 10600.00,
+    amountPaid: 10600.00,
+    balanceDue: 0.00,
+    status: 'paid',
+    notes: 'Thanks you',
+    terms: 'Due on Receipt',
+    createdAt: '2026-09-01'
   },
   {
     id: 'inv2',

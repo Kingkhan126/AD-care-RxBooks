@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { X, Printer, Download, Mail, Building2, CheckCircle2 } from 'lucide-react';
+import { X, Printer, Building2 } from 'lucide-react';
 import { useADCare } from '@/lib/context';
 import { Invoice, Bill, Quote } from '@/lib/types';
 
@@ -18,30 +18,39 @@ export const DocumentPrintModal: React.FC<DocumentPrintModalProps> = ({ document
     window.print();
   };
 
-  const getDocTitle = () => {
-    if (type === 'invoice') return `INVOICE #${(doc as Invoice).invoiceNumber}`;
-    if (type === 'bill') return `VENDOR BILL #${(doc as Bill).billNumber}`;
-    return `QUOTE #${(doc as Quote).quoteNumber}`;
-  };
-
   const docNumber = type === 'invoice' ? (doc as Invoice).invoiceNumber : type === 'bill' ? (doc as Bill).billNumber : (doc as Quote).quoteNumber;
   const partyName = type === 'invoice' ? (doc as Invoice).customerName : type === 'bill' ? (doc as Bill).vendorName : (doc as Quote).customerName;
   const issueDate = doc.issueDate;
   const dueDate = type === 'invoice' ? (doc as Invoice).dueDate : type === 'bill' ? (doc as Bill).dueDate : (doc as Quote).expiryDate;
 
+  const currency = orgSettings.currency || 'PKR';
+  const amountPaid = 'amountPaid' in doc ? (doc as Invoice).amountPaid : 0;
+  const balanceDue = 'balanceDue' in doc ? (doc as Invoice).balanceDue : doc.totalAmount;
+
+  const formatDateStr = (dateStr: string) => {
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    } catch {
+      return dateStr;
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden my-8 print:shadow-none print:m-0 print:w-full print:max-w-none">
+    <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl overflow-hidden my-6 print:shadow-none print:m-0 print:w-full print:max-w-none">
+        
         {/* Printable Control Bar (Hidden on print) */}
         <div className="p-4 bg-slate-900 text-white flex items-center justify-between print:hidden">
           <div className="flex items-center gap-2 font-bold text-sm">
             <Building2 className="w-4 h-4 text-brand-400" />
-            <span>AD Care RxBooks Document Viewer — {getDocTitle()}</span>
+            <span>AD Care RxBooks Official Invoice Template</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <button
               onClick={handlePrint}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold shadow-md transition-colors"
             >
               <Printer className="w-4 h-4" />
               <span>Print / Download PDF</span>
@@ -55,148 +64,168 @@ export const DocumentPrintModal: React.FC<DocumentPrintModalProps> = ({ document
           </div>
         </div>
 
-        {/* Printable Document Paper */}
-        <div className="p-8 bg-white text-slate-900 font-sans print:p-0">
-          {/* Document Header */}
-          <div className="flex items-start justify-between border-b border-slate-200 pb-6 mb-6">
-            <div>
-              <div className="flex items-center gap-3">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/logo.jpg"
-                  alt="AD CARE Meds & Pharmacy Logo"
-                  className="w-12 h-12 object-contain rounded-lg border border-slate-200"
-                />
-                <div>
-                  <div className="font-black text-2xl tracking-tight font-sans">
-                    <span className="text-[#3b558c]">AD </span>
-                    <span className="text-[#61b849]">CARE </span>
-                    <span className="text-[#3b558c]">RxBooks</span>
+        {/* Printable Document Paper (Exact Reference Template Layout) */}
+        <div className="p-12 bg-white text-slate-900 font-sans print:p-0 min-h-[950px] flex flex-col justify-between">
+          
+          <div>
+            {/* 1. Header Section */}
+            <div className="flex items-start justify-between mb-8">
+              {/* Left: Logo & Address */}
+              <div className="space-y-3 max-w-sm">
+                <div className="w-64 h-28 border border-slate-200 rounded-lg p-2 flex items-center justify-center bg-white shadow-2xs">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/logo.jpg"
+                    alt="AD CARE Meds & Pharmacy Logo"
+                    className="max-h-full max-w-full object-contain"
+                  />
+                </div>
+                <div className="text-xs text-slate-800 space-y-0.5 font-medium pt-1">
+                  <div className="font-bold text-slate-900 text-sm">Adcare Meds & Pharmacy Online Home Service</div>
+                  <div>Peshawar, Khyber Pakhtunkhwa</div>
+                  <div>Pakistan</div>
+                </div>
+              </div>
+
+              {/* Right: Title, Number & Balance Due Header */}
+              <div className="text-right space-y-2">
+                <h1 className="text-4xl font-extrabold text-[#1c75bc] tracking-wide uppercase font-sans">
+                  INVOICE
+                </h1>
+                <div className="text-xs font-bold text-slate-900"># {docNumber}</div>
+                
+                <div className="pt-4">
+                  <div className="text-xs font-medium text-slate-600">Balance Due</div>
+                  <div className="text-xl font-extrabold text-slate-900 font-mono">
+                    {currency}{balanceDue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </div>
-                  <div className="text-[11px] text-slate-500 font-medium">Meds & Pharmacy Platform</div>
                 </div>
-              </div>
-              <div className="text-xs text-slate-500 mt-2 space-y-0.5">
-                <p>{orgSettings.address}</p>
-                <p>{orgSettings.city}, {orgSettings.country}</p>
-                <p>Tax ID: {orgSettings.taxId} | Phone: {orgSettings.phone}</p>
-                <p>Email: {orgSettings.email}</p>
               </div>
             </div>
 
-            <div className="text-right">
-              <div className="inline-block px-3 py-1 bg-brand-50 text-brand-700 font-bold text-lg rounded-md uppercase tracking-wider mb-2 border border-brand-200">
-                {type.toUpperCase()}
+            {/* 2. Customer & Metadata Info Row */}
+            <div className="grid grid-cols-2 gap-8 mb-8 text-xs pt-4">
+              {/* Left: Patient / Customer */}
+              <div className="space-y-1 text-slate-800">
+                <div className="font-bold text-slate-900 text-sm">
+                  Patient Name: <span className="font-bold text-slate-900">{partyName}</span>
+                </div>
+                <div><span className="font-bold text-slate-800">Contact:</span> </div>
+                <div><span className="font-bold text-slate-800">Address: ,</span> </div>
               </div>
-              <div className="text-xs font-mono font-bold text-slate-800">{docNumber}</div>
-              <div className="text-xs text-slate-500 mt-1">
-                <p><span className="font-medium text-slate-700">Issue Date:</span> {issueDate}</p>
-                <p><span className="font-medium text-slate-700">Due Date:</span> {dueDate}</p>
+
+              {/* Right: Invoice Metadata */}
+              <div className="text-right space-y-1.5 text-slate-700">
+                <div className="flex justify-end gap-3">
+                  <span className="text-slate-600 font-medium">Invoice Date :</span>
+                  <span className="font-semibold text-slate-900 min-w-[90px]">{formatDateStr(issueDate)}</span>
+                </div>
+                <div className="flex justify-end gap-3">
+                  <span className="text-slate-600 font-medium">Terms :</span>
+                  <span className="font-semibold text-slate-900 min-w-[90px]">{'terms' in doc && doc.terms ? doc.terms : 'Due on Receipt'}</span>
+                </div>
+                <div className="flex justify-end gap-3">
+                  <span className="text-slate-600 font-medium">Due Date :</span>
+                  <span className="font-semibold text-slate-900 min-w-[90px]">{formatDateStr(dueDate)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Items Table */}
+            <div className="mb-6">
+              <table className="w-full text-xs text-left border-collapse">
+                <thead>
+                  <tr className="bg-[#2280c3] text-white font-semibold text-xs">
+                    <th className="py-2.5 px-3 w-10 text-center font-semibold">#</th>
+                    <th className="py-2.5 px-3 font-semibold">Description</th>
+                    <th className="py-2.5 px-3 text-right font-semibold w-24">Qty</th>
+                    <th className="py-2.5 px-3 text-right font-semibold w-32">Rate</th>
+                    <th className="py-2.5 px-3 text-right font-semibold w-36">Amount</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 text-slate-800">
+                  {doc.items.map((item, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50/50">
+                      <td className="py-3 px-3 text-center text-slate-600">{idx + 1}</td>
+                      <td className="py-3 px-3 font-medium text-slate-900">{item.itemName}</td>
+                      <td className="py-3 px-3 text-right font-mono">{item.quantity.toFixed(2)}</td>
+                      <td className="py-3 px-3 text-right font-mono">{item.unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                      <td className="py-3 px-3 text-right font-mono font-medium">{item.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="border-b border-slate-300"></div>
+            </div>
+
+            {/* 4. Totals Block */}
+            <div className="flex justify-end mb-12 text-xs">
+              <div className="w-80 space-y-2">
+                <div className="flex justify-between py-1 text-slate-700">
+                  <span className="font-medium">Sub Total</span>
+                  <span className="font-mono">{doc.subtotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                </div>
+                
+                {'discountTotal' in doc && (doc as Invoice).discountTotal > 0 && (
+                  <div className="flex justify-between py-1 text-slate-700">
+                    <span className="font-medium">Discount</span>
+                    <span className="font-mono">(-) {(doc as Invoice).discountTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                  </div>
+                )}
+
+                {'shippingTotal' in doc && (doc as Invoice).shippingTotal > 0 && (
+                  <div className="flex justify-between py-1 text-slate-700">
+                    <span className="font-medium">Shipping Charges</span>
+                    <span className="font-mono">{ (doc as Invoice).shippingTotal.toLocaleString(undefined, { minimumFractionDigits: 2 }) }</span>
+                  </div>
+                )}
+
+                <div className="flex justify-between py-1 font-bold text-sm text-slate-900">
+                  <span>Total</span>
+                  <span className="font-mono">{currency}{doc.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                </div>
+
+                {amountPaid > 0 && (
+                  <div className="flex justify-between py-1 text-rose-500 font-medium">
+                    <span>Payment Made</span>
+                    <span className="font-mono">(-) {amountPaid.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
+                )}
+
+                {/* Highlighted Balance Due Bar */}
+                <div className="flex justify-between items-center bg-[#f2f8f9] p-2.5 rounded border-y border-slate-200 mt-2 font-bold text-slate-900">
+                  <span className="text-xs uppercase tracking-wider">Balance Due</span>
+                  <span className="font-mono text-sm">{currency}{balanceDue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Billed To / Issued To */}
-          <div className="grid grid-cols-2 gap-8 mb-8 text-xs bg-slate-50 p-4 rounded-lg border border-slate-200">
-            <div>
-              <div className="font-bold text-slate-500 uppercase tracking-wider mb-1">
-                {type === 'bill' ? 'Vendor / Payee Details:' : 'Customer / Bill To:'}
+          {/* 5. Footer & Legal Section */}
+          <div className="pt-8 space-y-8">
+            <div className="text-xs text-slate-600 font-medium">
+              Thanks you
+            </div>
+
+            <div className="space-y-1 text-center font-mono">
+              <div className="text-xs font-bold tracking-[0.25em] text-slate-800 uppercase">
+                A D C A R E  M E D S  &  P H A R M A C Y  O N L I N E  H O M E  D E L I V E R Y
               </div>
-              <div className="font-bold text-slate-900 text-sm">{partyName}</div>
-              <div className="text-slate-600 mt-1">
-                {'customerEmail' in doc && <p>{doc.customerEmail}</p>}
-                <p>Account Status: Active Enterprise Partner</p>
+              <div className="text-xs tracking-[0.2em] text-slate-700">
+                W h a t s A p p :  0 3 4 2 - 3 0 1 0 5 0 8
               </div>
             </div>
-            <div className="text-right">
-              <div className="font-bold text-slate-500 uppercase tracking-wider mb-1">Payment Instructions:</div>
-              <div className="text-slate-700 space-y-0.5">
-                <p>Bank: <span className="font-semibold text-slate-900">Silicon Valley Bank</span></p>
-                <p>Routing: <span className="font-mono">121000358</span> | Account: <span className="font-mono">4910-882</span></p>
-                <p>SWIFT/BIC: <span className="font-mono">SVBUS66XX</span></p>
+
+            {/* Bottom Powered By Line */}
+            <div className="pt-4 border-t border-slate-300 flex items-center justify-between text-[10px] text-slate-500 uppercase tracking-widest">
+              <div className="flex items-center gap-2">
+                <span>POWERED BY</span>
+                <span className="font-bold text-brand-600">AD Care RxBooks</span>
               </div>
+              <div>1</div>
             </div>
           </div>
 
-          {/* Items Table */}
-          <table className="w-full text-xs text-left mb-6 border-collapse">
-            <thead>
-              <tr className="bg-slate-900 text-white uppercase text-[10px] tracking-wider">
-                <th className="p-2.5 rounded-tl-md">Description / Item</th>
-                <th className="p-2.5 text-center">Qty</th>
-                <th className="p-2.5 text-right">Unit Price</th>
-                <th className="p-2.5 text-right">Tax Rate</th>
-                <th className="p-2.5 text-right rounded-tr-md">Amount</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200 text-slate-800">
-              {doc.items.map((item, idx) => (
-                <tr key={idx} className="hover:bg-slate-50">
-                  <td className="p-2.5 font-medium">
-                    <div className="text-slate-900 font-semibold">{item.itemName}</div>
-                    <div className="text-[11px] text-slate-500">{item.description}</div>
-                  </td>
-                  <td className="p-2.5 text-center font-mono">{item.quantity}</td>
-                  <td className="p-2.5 text-right font-mono">${item.unitPrice.toFixed(2)}</td>
-                  <td className="p-2.5 text-right font-mono">{item.taxRate}%</td>
-                  <td className="p-2.5 text-right font-mono font-bold">${item.amount.toFixed(2)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {/* Totals Section */}
-          <div className="flex justify-end mb-8 text-xs">
-            <div className="w-72 space-y-2 border-t border-slate-200 pt-3">
-              <div className="flex justify-between text-slate-600">
-                <span>Subtotal:</span>
-                <span className="font-mono">${doc.subtotal.toFixed(2)}</span>
-              </div>
-              {'discountTotal' in doc && (doc as Invoice).discountTotal > 0 && (
-                <div className="flex justify-between text-emerald-600 font-medium">
-                  <span>Discount Applied (-):</span>
-                  <span className="font-mono">-${(doc as Invoice).discountTotal.toFixed(2)}</span>
-                </div>
-              )}
-              <div className="flex justify-between text-slate-600">
-                <span>Tax (10%):</span>
-                <span className="font-mono">${doc.taxTotal.toFixed(2)}</span>
-              </div>
-              {'shippingTotal' in doc && (doc as Invoice).shippingTotal > 0 && (
-                <div className="flex justify-between text-slate-700">
-                  <span>Shipping & Freight Charges:</span>
-                  <span className="font-mono">${(doc as Invoice).shippingTotal.toFixed(2)}</span>
-                </div>
-              )}
-              <div className="flex justify-between font-bold text-sm text-slate-900 border-t border-slate-300 pt-2">
-                <span>Total Amount:</span>
-                <span className="font-mono text-brand-600">${doc.totalAmount.toFixed(2)}</span>
-              </div>
-              {'balanceDue' in doc && (
-                <div className="flex justify-between text-xs font-bold text-rose-600 border-t border-dashed border-rose-200 pt-1">
-                  <span>Balance Due:</span>
-                  <span className="font-mono">${(doc as Invoice).balanceDue.toFixed(2)}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Notes & Branding Footer */}
-          <div className="border-t border-slate-200 pt-6 text-[11px] text-slate-500 grid grid-cols-2 gap-4">
-            <div>
-              <div className="font-bold text-slate-700 uppercase tracking-wider mb-1">Terms & Notes</div>
-              <p>{'notes' in doc ? doc.notes : 'Thank you for your business.'}</p>
-            </div>
-            <div className="text-right flex flex-col items-end justify-between">
-              <div className="flex items-center gap-1.5 text-slate-400 font-semibold">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                <span>Verified by AD Care RxBooks Cloud Ledger</span>
-              </div>
-              <div className="text-[10px] text-slate-400">
-                Generated with AD Care RxBooks Business Accounting Platform
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
