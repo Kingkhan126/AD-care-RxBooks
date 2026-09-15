@@ -5,7 +5,7 @@ import { Settings, Save, Building2, Globe, Mail, Phone, MapPin, ShieldCheck, Che
 import { useADCare } from '@/lib/context';
 
 export default function SettingsPage() {
-  const { orgSettings, updateOrgSettings } = useADCare();
+  const { orgSettings, updateOrgSettings, resetToDefaultData } = useADCare();
   const [saved, setSaved] = useState(false);
 
   const [name, setName] = useState(orgSettings.name);
@@ -17,6 +17,13 @@ export default function SettingsPage() {
   const [address, setAddress] = useState(orgSettings.address);
   const [city, setCity] = useState(orgSettings.city);
   const [country, setCountry] = useState(orgSettings.country);
+
+  const handleReset = () => {
+    if (confirm('Are you sure you want to reset all stored invoices, bills, customers, vendors, and inventory data back to factory defaults?')) {
+      resetToDefaultData();
+      alert('System data has been reset to factory defaults.');
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,7 +51,7 @@ export default function SettingsPage() {
             Organization & System Settings
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Configure AD CARE legal business parameters, tax registration, and contact metadata.
+            Configure AD CARE legal business parameters, tax registration, and persistent local storage database settings.
           </p>
         </div>
 
@@ -84,7 +91,7 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className="font-semibold text-slate-700">Federal Tax ID / EIN</label>
+              <label className="font-semibold text-slate-700">Federal Tax ID / Registration</label>
               <input
                 type="text"
                 required
@@ -98,7 +105,7 @@ export default function SettingsPage() {
               <input
                 type="text"
                 disabled
-                value="USD ($)"
+                value="PKR (Rs.)"
                 className="w-full mt-1 p-2 border border-slate-200 rounded-lg bg-slate-100 text-slate-500 font-mono font-bold"
               />
             </div>
@@ -153,7 +160,7 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className="font-semibold text-slate-700">City & State</label>
+              <label className="font-semibold text-slate-700">City & Region</label>
               <input
                 type="text"
                 value={city}
@@ -161,6 +168,28 @@ export default function SettingsPage() {
                 className="w-full mt-1 p-2 border border-slate-200 rounded-lg text-slate-900"
               />
             </div>
+          </div>
+        </div>
+
+        {/* Data Persistence & Storage Controls */}
+        <div className="space-y-4 pt-4 border-t border-slate-200">
+          <div className="font-bold text-slate-900 uppercase tracking-wider text-xs border-b border-slate-100 pb-2">
+            Data Storage & System Persistence
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-slate-50 border border-slate-200 rounded-xl">
+            <div>
+              <div className="font-bold text-slate-900 text-xs">Persistent Browser Storage Active</div>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                All invoices, vendor bills, customer profiles, vendor records, product stock levels, and audit logs are automatically persisted to local storage upon modification and survive page reloads.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleReset}
+              className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl font-bold text-xs shrink-0 transition-colors"
+            >
+              Reset to Factory Defaults
+            </button>
           </div>
         </div>
 

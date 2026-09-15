@@ -110,6 +110,8 @@ interface ADCareContextType {
     isBalanced: boolean;
   };
 
+  resetToDefaultData: () => void;
+
   // AI Assistant State
   isAIOpen: boolean;
   setIsAIOpen: (open: boolean) => void;
@@ -120,6 +122,8 @@ interface ADCareContextType {
 const ADCareContext = createContext<ADCareContextType | undefined>(undefined);
 
 export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+
   const [orgSettings, setOrgSettings] = useState<OrganizationSettings>(INITIAL_ORG_SETTINGS);
   const [contacts, setContacts] = useState<Contact[]>(INITIAL_CONTACTS);
   const [items, setItems] = useState<Item[]>(INITIAL_ITEMS);
@@ -147,7 +151,7 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   ]);
 
-  // Load from localStorage if available
+  // Load from localStorage on mount (preserves updated user data)
   useEffect(() => {
     try {
       const savedInvoices = localStorage.getItem('adcare_invoices');
@@ -156,23 +160,101 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const savedContacts = localStorage.getItem('adcare_contacts');
       if (savedContacts) setContacts(JSON.parse(savedContacts));
 
+      const savedItems = localStorage.getItem('adcare_items');
+      if (savedItems) setItems(JSON.parse(savedItems));
+
+      const savedBills = localStorage.getItem('adcare_bills');
+      if (savedBills) setBills(JSON.parse(savedBills));
+
       const savedExpenses = localStorage.getItem('adcare_expenses');
       if (savedExpenses) setExpenses(JSON.parse(savedExpenses));
+
+      const savedOrgSettings = localStorage.getItem('adcare_org_settings');
+      if (savedOrgSettings) setOrgSettings(JSON.parse(savedOrgSettings));
+
+      const savedWarehouses = localStorage.getItem('adcare_warehouses');
+      if (savedWarehouses) setWarehouses(JSON.parse(savedWarehouses));
+
+      const savedBankAccounts = localStorage.getItem('adcare_bank_accounts');
+      if (savedBankAccounts) setBankAccounts(JSON.parse(savedBankAccounts));
+
+      const savedBankTransactions = localStorage.getItem('adcare_bank_transactions');
+      if (savedBankTransactions) setBankTransactions(JSON.parse(savedBankTransactions));
+
+      const savedAccounts = localStorage.getItem('adcare_accounts');
+      if (savedAccounts) setAccounts(JSON.parse(savedAccounts));
+
+      const savedJournalEntries = localStorage.getItem('adcare_journal_entries');
+      if (savedJournalEntries) setJournalEntries(JSON.parse(savedJournalEntries));
+
+      const savedProjects = localStorage.getItem('adcare_projects');
+      if (savedProjects) setProjects(JSON.parse(savedProjects));
+
+      const savedTimesheets = localStorage.getItem('adcare_timesheets');
+      if (savedTimesheets) setTimesheets(JSON.parse(savedTimesheets));
+
+      const savedAutomationRules = localStorage.getItem('adcare_automation_rules');
+      if (savedAutomationRules) setAutomationRules(JSON.parse(savedAutomationRules));
+
+      const savedAuditLogs = localStorage.getItem('adcare_audit_logs');
+      if (savedAuditLogs) setAuditLogs(JSON.parse(savedAuditLogs));
     } catch (e) {
       console.warn('LocalStorage restoration error:', e);
+    } finally {
+      setIsLoaded(true);
     }
   }, []);
 
-  // Save changes to localStorage
+  // Save changes to localStorage ONLY after initial load completes (prevents overwriting saved data on mount)
   useEffect(() => {
+    if (!isLoaded) return;
     try {
       localStorage.setItem('adcare_invoices', JSON.stringify(invoices));
       localStorage.setItem('adcare_contacts', JSON.stringify(contacts));
+      localStorage.setItem('adcare_items', JSON.stringify(items));
+      localStorage.setItem('adcare_bills', JSON.stringify(bills));
       localStorage.setItem('adcare_expenses', JSON.stringify(expenses));
+      localStorage.setItem('adcare_org_settings', JSON.stringify(orgSettings));
+      localStorage.setItem('adcare_warehouses', JSON.stringify(warehouses));
+      localStorage.setItem('adcare_bank_accounts', JSON.stringify(bankAccounts));
+      localStorage.setItem('adcare_bank_transactions', JSON.stringify(bankTransactions));
+      localStorage.setItem('adcare_accounts', JSON.stringify(accounts));
+      localStorage.setItem('adcare_journal_entries', JSON.stringify(journalEntries));
+      localStorage.setItem('adcare_projects', JSON.stringify(projects));
+      localStorage.setItem('adcare_timesheets', JSON.stringify(timesheets));
+      localStorage.setItem('adcare_automation_rules', JSON.stringify(automationRules));
+      localStorage.setItem('adcare_audit_logs', JSON.stringify(auditLogs));
     } catch (e) {
       console.warn('LocalStorage save error:', e);
     }
-  }, [invoices, contacts, expenses]);
+  }, [
+    isLoaded, invoices, contacts, items, bills, expenses, orgSettings,
+    warehouses, bankAccounts, bankTransactions, accounts, journalEntries,
+    projects, timesheets, automationRules, auditLogs
+  ]);
+
+  const resetToDefaultData = () => {
+    try {
+      localStorage.clear();
+    } catch (e) {
+      console.warn('LocalStorage clear error:', e);
+    }
+    setOrgSettings(INITIAL_ORG_SETTINGS);
+    setContacts(INITIAL_CONTACTS);
+    setItems(INITIAL_ITEMS);
+    setWarehouses(INITIAL_WAREHOUSES);
+    setInvoices(INITIAL_INVOICES);
+    setBills(INITIAL_BILLS);
+    setExpenses(INITIAL_EXPENSES);
+    setBankAccounts(INITIAL_BANK_ACCOUNTS);
+    setBankTransactions(INITIAL_BANK_TRANSACTIONS);
+    setAccounts(INITIAL_ACCOUNTS);
+    setJournalEntries(INITIAL_JOURNAL_ENTRIES);
+    setProjects(INITIAL_PROJECTS);
+    setTimesheets(INITIAL_TIMESHEETS);
+    setAutomationRules(INITIAL_AUTOMATION_RULES);
+    setAuditLogs(INITIAL_AUDIT_LOGS);
+  };
 
   const updateOrgSettings = (settings: Partial<OrganizationSettings>) => {
     setOrgSettings(prev => ({ ...prev, ...settings }));
@@ -555,7 +637,7 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       totalRevenue, totalExpenses, netProfit, totalBankBalance,
       totalReceivables, totalPayables, overdueInvoicesCount, pendingBillsCount,
 
-      getProfitAndLoss, getBalanceSheet, getTrialBalance,
+      getProfitAndLoss, getBalanceSheet, getTrialBalance, resetToDefaultData,
 
       isAIOpen, setIsAIOpen, aiMessages, sendAIMessage
     }}>
