@@ -150,6 +150,7 @@ export interface Bill {
   balanceDue: number;
   status: BillStatus;
   notes: string;
+  terms?: string;
   createdAt: string;
 }
 
