@@ -331,7 +331,7 @@ export default function NewInvoicePage() {
             </div>
             {discountTotal > 0 && (
               <div className="flex justify-between text-emerald-600 text-[11px] font-medium">
-                <span>Discount Applied (-):</span>
+                <span>Discount Applied {discountType === 'percentage' ? `(${discountVal}%)` : `(${((discountTotal / (subtotal || 1)) * 100).toFixed(0)}%)`} (-):</span>
                 <span className="font-mono font-bold">-PKR {discountTotal.toFixed(2)}</span>
               </div>
             )}

@@ -463,20 +463,26 @@ export const DocumentPrintModal: React.FC<DocumentPrintModalProps> = ({ document
                   <span className="font-mono">{subtotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
                 
-                <div className="flex justify-between items-center py-1 text-slate-700">
-                  <span className="font-medium">Discount</span>
-                  {isEditing ? (
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={discountTotal}
-                      onChange={(e) => setDiscountTotal(parseFloat(e.target.value) || 0)}
-                      className="w-24 p-1 text-right border border-slate-300 rounded font-mono"
-                    />
-                  ) : (
-                    discountTotal > 0 && <span className="font-mono">(-) {discountTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                  )}
-                </div>
+                {(() => {
+                  const discountPercent = subtotal > 0 && discountTotal > 0 ? (discountTotal / subtotal) * 100 : 0;
+                  const percentLabel = discountPercent > 0 ? ` (${discountPercent % 1 === 0 ? discountPercent.toFixed(0) : discountPercent.toFixed(2)}%)` : '';
+                  return (
+                    <div className="flex justify-between items-center py-1 text-slate-700">
+                      <span className="font-medium">Discount{percentLabel}</span>
+                      {isEditing ? (
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={discountTotal}
+                          onChange={(e) => setDiscountTotal(parseFloat(e.target.value) || 0)}
+                          className="w-24 p-1 text-right border border-slate-300 rounded font-mono"
+                        />
+                      ) : (
+                        discountTotal > 0 && <span className="font-mono">(-) {discountTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 <div className="flex justify-between items-center py-1 text-slate-700">
                   <span className="font-medium">Shipping Charges</span>
