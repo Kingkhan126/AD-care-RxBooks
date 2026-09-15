@@ -86,11 +86,23 @@ interface ADCareContextType {
   pendingBillsCount: number;
 
   getProfitAndLoss: () => {
-    revenueAccounts: { code: string; name: string; balance: number }[];
-    expenseAccounts: { code: string; name: string; balance: number }[];
-    totalRevenue: number;
+    salesRevenue: number;
+    procurementCost: number;
+    directExpenses: number;
     totalExpenses: number;
     netIncome: number;
+    itemizedSummary: {
+      itemId: string;
+      itemName: string;
+      sku: string;
+      quantitySold: number;
+      unitPrice: number;
+      costPrice: number;
+      totalRevenue: number;
+      totalCost: number;
+      grossProfit: number;
+      profitMargin: number;
+    }[];
   };
 
   getBalanceSheet: () => {
@@ -555,16 +567,78 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const pendingBillsCount = bills.filter(b => b.status === 'received' || b.status === 'partially_paid').length;
 
   const getProfitAndLoss = () => {
-    const revenueAccounts = accounts.filter(a => a.category === 'income').map(a => ({ code: a.code, name: a.name, balance: a.balance }));
-    const expenseAccounts = accounts.filter(a => a.category === 'expense').map(a => ({ code: a.code, name: a.name, balance: a.balance }));
-    const totalRev = revenueAccounts.reduce((acc, r) => acc + r.balance, 0);
-    const totalExp = expenseAccounts.reduce((acc, e) => acc + e.balance, 0);
+    // 1. Calculate active sales revenue from non-void invoices
+    const activeInvoices = invoices.filter(inv => inv.status !== 'void');
+    const salesRevenue = activeInvoices.reduce((acc, inv) => acc + inv.totalAmount, 0);
+
+    // 2. Calculate Cost of Goods Sold (COGS) / Procurement Cost for items sold in invoices
+    let cogs = 0;
+    const itemSalesMap: Record<string, {
+      itemId: string;
+      itemName: string;
+      sku: string;
+      quantitySold: number;
+      totalRevenue: number;
+      totalCost: number;
+      unitPrice: number;
+      costPrice: number;
+    }> = {};
+
+    activeInvoices.forEach(inv => {
+      inv.items.forEach(line => {
+        const catalogItem = items.find(i => i.id === line.itemId || i.name.toLowerCase() === line.itemName.toLowerCase());
+        const costRate = catalogItem ? catalogItem.costPrice : (line.unitPrice * 0.7);
+        const lineCost = line.quantity * costRate;
+        cogs += lineCost;
+
+        const key = catalogItem?.id || line.itemName;
+        if (!itemSalesMap[key]) {
+          itemSalesMap[key] = {
+            itemId: key,
+            itemName: line.itemName,
+            sku: catalogItem?.sku || 'MED-GEN-01',
+            quantitySold: 0,
+            totalRevenue: 0,
+            totalCost: 0,
+            unitPrice: line.unitPrice,
+            costPrice: costRate
+          };
+        }
+        itemSalesMap[key].quantitySold += line.quantity;
+        itemSalesMap[key].totalRevenue += line.amount;
+        itemSalesMap[key].totalCost += line.quantity * costRate;
+      });
+    });
+
+    // Vendor bills total
+    const billsTotal = bills.reduce((acc, b) => acc + b.totalAmount, 0);
+    const totalProcurementCost = cogs + billsTotal;
+
+    // Direct logged expenses
+    const directExpenses = expenses.reduce((acc, exp) => acc + exp.amount, 0);
+
+    // Total expenses & Net Income
+    const totalExp = totalProcurementCost + directExpenses;
+    const netIncome = salesRevenue - totalExp;
+
+    // Itemized Profitability Summary Array
+    const itemizedSummary = Object.values(itemSalesMap).map(item => {
+      const grossProfit = item.totalRevenue - item.totalCost;
+      const profitMargin = item.totalRevenue > 0 ? (grossProfit / item.totalRevenue) * 100 : 0;
+      return {
+        ...item,
+        grossProfit,
+        profitMargin
+      };
+    });
+
     return {
-      revenueAccounts,
-      expenseAccounts,
-      totalRevenue: totalRev,
+      salesRevenue,
+      procurementCost: totalProcurementCost,
+      directExpenses,
       totalExpenses: totalExp,
-      netIncome: totalRev - totalExp
+      netIncome,
+      itemizedSummary
     };
   };
 
