@@ -1,10 +1,17 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { ADCareProvider } from '@/lib/context';
 import { MainContentLayout } from '@/components/layout/MainContentLayout';
 
 const inter = Inter({ subsets: ['latin'] });
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
 
 export const metadata: Metadata = {
   title: 'AD CARE — Meds & Pharmacy Business Accounting',
@@ -21,7 +28,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-slate-100 min-h-screen antialiased text-slate-900`}>
+      <body className={`${inter.className} bg-slate-100 min-h-screen antialiased text-slate-900 overflow-x-hidden`}>
         <ADCareProvider>
           <MainContentLayout>{children}</MainContentLayout>
         </ADCareProvider>

@@ -37,6 +37,10 @@ export const Sidebar: React.FC = () => {
     setIsMobileSidebarOpen
   } = useADCare();
 
+  React.useEffect(() => {
+    setIsMobileSidebarOpen(false);
+  }, [pathname, setIsMobileSidebarOpen]);
+
   const navigation: NavGroup[] = [
     {
       groupName: 'OVERVIEW',
