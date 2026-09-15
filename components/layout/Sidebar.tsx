@@ -93,9 +93,9 @@ export const Sidebar: React.FC = () => {
 
   return (
     <>
-      {/* 1. Mobile Backdrop Overlay */}
+      {/* 1. Mobile Semi-Transparent Backdrop Overlay */}
       <div
-        className={`md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-300 ease-in-out ${
+        className={`fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ease-in-out md:hidden ${
           isMobileSidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
         onClick={() => setIsMobileSidebarOpen(false)}
