@@ -15,7 +15,7 @@ export const DocumentPrintModal: React.FC<DocumentPrintModalProps> = ({ document
   const { orgSettings, updateInvoice, updateBill } = useADCare();
 
   const [isEditing, setIsEditing] = useState(false);
-  const [logoSrc, setLogoSrc] = useState<string>('/logo.jpg');
+  const [logoSrc, setLogoSrc] = useState<string>('');
 
   // Editable Document Fields
   const initialPartyName = type === 'invoice' ? (doc as Invoice).customerName : type === 'bill' ? (doc as Bill).vendorName : (doc as Quote).customerName;
@@ -216,26 +216,49 @@ export const DocumentPrintModal: React.FC<DocumentPrintModalProps> = ({ document
             <div className="flex items-start justify-between mb-8 gap-4">
               {/* Left: Logo Box & Address */}
               <div className="space-y-3 max-w-sm">
-                <div className="relative group w-64 h-28 border border-slate-200 rounded-lg p-2 flex items-center justify-center bg-white shadow-2xs overflow-hidden">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={logoSrc}
-                    alt="Official Logo"
-                    className="max-h-full max-w-full object-contain"
-                  />
-                  {isEditing && (
-                    <label className="absolute inset-0 bg-slate-900/60 text-white flex flex-col items-center justify-center cursor-pointer text-xs font-semibold opacity-90 transition-opacity">
-                      <Upload className="w-5 h-5 mb-1" />
-                      <span>Upload Logo</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleLogoUpload}
-                        className="hidden"
-                      />
-                    </label>
-                  )}
-                </div>
+                {logoSrc ? (
+                  <div className="relative group max-w-[240px] max-h-[100px] flex items-center justify-center overflow-hidden mb-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={logoSrc}
+                      alt="Company Logo"
+                      className="max-h-24 max-w-full object-contain"
+                    />
+                    {isEditing && (
+                      <div className="absolute inset-0 bg-slate-900/80 text-white flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+                        <label className="flex items-center gap-1 cursor-pointer text-xs font-semibold px-2 py-1 bg-brand-600 hover:bg-brand-500 rounded text-white shadow-sm">
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>Change</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleLogoUpload}
+                            className="hidden"
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setLogoSrc('')}
+                          className="flex items-center gap-1 text-xs font-semibold px-2 py-1 bg-rose-600 hover:bg-rose-500 rounded text-white shadow-sm"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Remove</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : isEditing ? (
+                  <label className="flex items-center gap-2 w-52 h-12 border-2 border-dashed border-slate-300 hover:border-brand-500 hover:bg-brand-50/50 rounded-lg p-2 justify-center cursor-pointer text-xs font-semibold text-slate-600 transition-all print:hidden mb-2">
+                    <Upload className="w-4 h-4 text-brand-600" />
+                    <span>+ Add Company Logo</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                      className="hidden"
+                    />
+                  </label>
+                ) : null}
 
                 <div className="text-xs text-slate-800 space-y-0.5 font-medium pt-1">
                   <div className="font-bold text-slate-900 text-sm">Adcare Meds & Pharmacy Online Home Service</div>
