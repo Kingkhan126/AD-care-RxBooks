@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Receipt, Plus, Trash2, ArrowLeft, Save, CheckCircle, Printer } from 'lucide-react';
+import { Receipt, Plus, Trash2, ArrowLeft, Save } from 'lucide-react';
 import { useADCare } from '@/lib/context';
 import { LineItem, Invoice } from '@/lib/types';
 import { DocumentPrintModal } from '@/components/documents/DocumentPrintModal';
@@ -143,7 +143,7 @@ export default function NewInvoicePage() {
   };
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-12">
+    <div className="space-y-4 sm:space-y-6 max-w-5xl mx-auto pb-12">
       {/* Print Modal */}
       {savedInvoice && (
         <DocumentPrintModal
@@ -156,8 +156,8 @@ export default function NewInvoicePage() {
         />
       )}
 
-      {/* Top Controls */}
-      <div className="flex items-center justify-between">
+      {/* Top Controls - Sticky below header */}
+      <div className="sticky top-16 z-10 bg-slate-100 -mx-3 sm:-mx-6 px-3 sm:px-6 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-200">
         <button
           onClick={() => router.back()}
           className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors"
@@ -166,18 +166,18 @@ export default function NewInvoicePage() {
           <span>Back to Invoices</span>
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
             type="button"
             onClick={() => router.push('/invoices')}
-            className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded-xl transition-colors"
+            className="flex-1 sm:flex-none px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded-xl transition-colors"
           >
             Cancel
           </button>
           <button
             type="submit"
             form="invoice-form"
-            className="flex items-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl shadow-md transition-colors"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl shadow-md transition-colors"
           >
             <Save className="w-4 h-4" />
             <span>Save & Issue Invoice</span>
@@ -186,24 +186,24 @@ export default function NewInvoicePage() {
       </div>
 
       {/* Main Invoice Card */}
-      <form id="invoice-form" onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200 shadow-subtle p-8 space-y-6">
+      <form id="invoice-form" onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200 shadow-subtle p-4 sm:p-8 space-y-4 sm:space-y-6">
         {/* Document Banner */}
-        <div className="flex items-start justify-between border-b border-slate-200 pb-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-start justify-between border-b border-slate-200 pb-4 sm:pb-6 gap-2">
           <div>
-            <div className="font-extrabold text-xl text-slate-900 flex items-center gap-2">
-              <Receipt className="w-6 h-6 text-brand-600" />
+            <div className="font-extrabold text-lg sm:text-xl text-slate-900 flex items-center gap-2">
+              <Receipt className="w-5 h-5 sm:w-6 sm:h-6 text-brand-600" />
               <span>Create New Invoice</span>
             </div>
             <p className="text-xs text-slate-500 mt-1">AD CARE Cloud Invoicing Builder</p>
           </div>
 
-          <div className="text-right">
+          <div className="text-left sm:text-right">
             <span className="text-xs font-mono font-bold text-slate-400">INVOICE # (Auto Generated)</span>
           </div>
         </div>
 
         {/* Customer & Date Selection */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200 text-xs">
           <div>
             <label className="font-bold text-slate-700 uppercase tracking-wider block mb-1">Select Customer *</label>
             <select
@@ -243,64 +243,125 @@ export default function NewInvoicePage() {
         {/* Line Items Table */}
         <div className="space-y-3">
           <label className="font-bold text-slate-800 text-xs uppercase tracking-wider">Invoice Line Items</label>
-          <table className="w-full text-xs text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-900 text-white uppercase text-[10px] tracking-wider">
-                <th className="p-3 rounded-tl-lg">Item / Service</th>
-                <th className="p-3 w-24 text-center">Qty</th>
-                <th className="p-3 w-32 text-right">Unit Price (PKR)</th>
-                <th className="p-3 w-24 text-right">Tax</th>
-                <th className="p-3 w-32 text-right">Amount (PKR)</th>
-                <th className="p-3 w-12 text-center rounded-tr-lg"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200 text-slate-800">
-              {lineItems.map((row, idx) => (
-                <tr key={row.id} className="hover:bg-slate-50/50">
-                  <td className="p-2.5">
-                    <select
-                      value={row.itemId}
-                      onChange={(e) => handleItemSelect(idx, e.target.value)}
-                      className="w-full p-2 border border-slate-200 rounded-lg bg-white font-medium"
+
+          {/* Desktop Table */}
+          <div className="hidden sm:block overflow-x-auto">
+            <table className="w-full text-xs text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-900 text-white uppercase text-[10px] tracking-wider">
+                  <th className="p-3 rounded-tl-lg">Item / Service</th>
+                  <th className="p-3 w-24 text-center">Qty</th>
+                  <th className="p-3 w-32 text-right">Unit Price (PKR)</th>
+                  <th className="p-3 w-24 text-right">Tax</th>
+                  <th className="p-3 w-32 text-right">Amount (PKR)</th>
+                  <th className="p-3 w-12 text-center rounded-tr-lg"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 text-slate-800">
+                {lineItems.map((row, idx) => (
+                  <tr key={row.id} className="hover:bg-slate-50/50">
+                    <td className="p-2.5">
+                      <select
+                        value={row.itemId}
+                        onChange={(e) => handleItemSelect(idx, e.target.value)}
+                        className="w-full p-2 border border-slate-200 rounded-lg bg-white font-medium"
+                      >
+                        {catalogItems.map(item => (
+                          <option key={item.id} value={item.id}>{item.name} (PKR {item.salesPrice})</option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="p-2.5 text-center">
+                      <input
+                        type="number"
+                        min="1"
+                        value={row.quantity}
+                        onChange={(e) => handleQuantityChange(idx, parseInt(e.target.value) || 1)}
+                        className="w-full p-2 text-center border border-slate-200 rounded-lg font-mono font-bold"
+                      />
+                    </td>
+                    <td className="p-2.5 text-right">
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={row.unitPrice}
+                        onChange={(e) => handlePriceChange(idx, parseFloat(e.target.value) || 0)}
+                        className="w-full p-2 text-right border border-slate-200 rounded-lg font-mono font-bold"
+                      />
+                    </td>
+                    <td className="p-2.5 text-right font-mono text-slate-500 font-semibold">{row.taxRate}%</td>
+                    <td className="p-2.5 text-right font-mono font-bold text-slate-900">PKR {row.amount.toFixed(2)}</td>
+                    <td className="p-2.5 text-center">
+                      <button
+                        type="button"
+                        onClick={() => removeLineRow(idx)}
+                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded-md"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="sm:hidden space-y-3">
+            {lineItems.map((row, idx) => (
+              <div key={row.id} className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Item {idx + 1}</span>
+                  {lineItems.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeLineRow(idx)}
+                      className="p-1 text-slate-400 hover:text-rose-600"
                     >
-                      {catalogItems.map(item => (
-                        <option key={item.id} value={item.id}>{item.name} (PKR {item.salesPrice})</option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="p-2.5 text-center">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+                <select
+                  value={row.itemId}
+                  onChange={(e) => handleItemSelect(idx, e.target.value)}
+                  className="w-full p-2 border border-slate-200 rounded-lg bg-white font-medium text-xs"
+                >
+                  {catalogItems.map(item => (
+                    <option key={item.id} value={item.id}>{item.name} (PKR {item.salesPrice})</option>
+                  ))}
+                </select>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">Qty</label>
                     <input
                       type="number"
                       min="1"
                       value={row.quantity}
                       onChange={(e) => handleQuantityChange(idx, parseInt(e.target.value) || 1)}
-                      className="w-full p-2 text-center border border-slate-200 rounded-lg font-mono font-bold"
+                      className="w-full p-2 text-center border border-slate-200 rounded-lg font-mono font-bold text-xs"
                     />
-                  </td>
-                  <td className="p-2.5 text-right">
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">Price</label>
                     <input
                       type="number"
                       step="0.01"
                       value={row.unitPrice}
                       onChange={(e) => handlePriceChange(idx, parseFloat(e.target.value) || 0)}
-                      className="w-full p-2 text-right border border-slate-200 rounded-lg font-mono font-bold"
+                      className="w-full p-2 text-right border border-slate-200 rounded-lg font-mono font-bold text-xs"
                     />
-                  </td>
-                  <td className="p-2.5 text-right font-mono text-slate-500 font-semibold">{row.taxRate}%</td>
-                  <td className="p-2.5 text-right font-mono font-bold text-slate-900">PKR {row.amount.toFixed(2)}</td>
-                  <td className="p-2.5 text-center">
-                    <button
-                      type="button"
-                      onClick={() => removeLineRow(idx)}
-                      className="p-1.5 text-slate-400 hover:text-rose-600 rounded-md"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">Amount</label>
+                    <div className="p-2 text-right font-mono font-bold text-xs text-brand-600 bg-white border border-slate-200 rounded-lg">
+                      PKR {row.amount.toFixed(2)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
 
           <button
             type="button"
@@ -314,7 +375,7 @@ export default function NewInvoicePage() {
 
         {/* Calculations Footer */}
         <div className="flex justify-end pt-4 border-t border-slate-200 text-xs">
-          <div className="w-80 space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <div className="w-full sm:w-80 space-y-3 bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200">
             <div className="flex justify-between items-center text-slate-600">
               <span className="font-semibold">Subtotal:</span>
               <span className="font-mono font-bold">PKR {subtotal.toFixed(2)}</span>
@@ -345,14 +406,14 @@ export default function NewInvoicePage() {
             </div>
             {discountTotal > 0 && (
               <div className="flex justify-between text-emerald-600 text-[11px] font-medium">
-                <span>Discount Applied {discountType === 'percentage' ? `(${discountVal}%)` : `(${((discountTotal / (subtotal || 1)) * 100).toFixed(0)}%)`} (-):</span>
+                <span>Applied {discountType === 'percentage' ? `(${discountVal}%)` : `(${((discountTotal / (subtotal || 1)) * 100).toFixed(0)}%)`} (-):</span>
                 <span className="font-mono font-bold">-PKR {discountTotal.toFixed(2)}</span>
               </div>
             )}
 
             {/* Shipping Charges */}
             <div className="flex justify-between items-center text-slate-700 font-semibold">
-              <span>Shipping & Freight (PKR):</span>
+              <span>Shipping (PKR):</span>
               <input
                 type="number"
                 min="0"
@@ -392,6 +453,17 @@ export default function NewInvoicePage() {
               className="w-full p-2 border border-slate-200 rounded-lg text-slate-800"
             />
           </div>
+        </div>
+
+        {/* Bottom Save Button - Mobile Friendly */}
+        <div className="flex justify-end pt-4 border-t border-slate-200 sm:hidden">
+          <button
+            type="submit"
+            className="flex items-center justify-center gap-2 w-full px-5 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm rounded-xl shadow-md transition-colors"
+          >
+            <Save className="w-4 h-4" />
+            <span>Save & Issue Invoice</span>
+          </button>
         </div>
       </form>
     </div>
