@@ -54,20 +54,53 @@ export const DocumentPrintModal: React.FC<DocumentPrintModalProps> = ({ document
           <!DOCTYPE html>
           <html>
           <head>
-            <title>Invoice - ${docNumber}</title>
+            <title>${type === 'bill' ? 'Bill' : 'Invoice'} - ${docNumber}</title>
             <style>
-              body { font-family: 'Inter', Arial, sans-serif; margin: 0; padding: 20px; color: #1e293b; }
-              table { width: 100%; border-collapse: collapse; }
-              th { background: #2280c3; color: white; padding: 8px 12px; text-align: left; font-size: 12px; }
-              td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; font-size: 12px; }
-              @media print { body { padding: 0; } }
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+              body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1e293b; padding: 30px; background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+              img { max-height: 80px; max-width: 200px; object-fit: contain; }
+              .header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; }
+              .header-left { max-width: 280px; }
+              .header-right { text-align: right; }
+              .company-name { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 2px; }
+              .company-addr { font-size: 12px; color: #475569; line-height: 1.4; }
+              .doc-title { font-size: 36px; font-weight: 800; color: #1c75bc; text-transform: uppercase; letter-spacing: 2px; }
+              .doc-number { font-size: 12px; font-weight: 700; color: #0f172a; margin-top: 4px; }
+              .balance-label { font-size: 12px; color: #64748b; margin-top: 16px; }
+              .balance-amount { font-size: 22px; font-weight: 800; color: #0f172a; font-family: monospace; }
+              .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 24px 0; padding: 16px 0; border-top: 1px solid #f1f5f9; font-size: 12px; }
+              .info-label { font-weight: 700; color: #0f172a; min-width: 90px; display: inline-block; }
+              .info-value { color: #475569; }
+              .info-right { text-align: right; }
+              table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+              thead th { background: #2280c3; color: white; padding: 10px 12px; font-size: 12px; font-weight: 600; text-align: left; }
+              thead th:first-child { border-radius: 6px 0 0 0; }
+              thead th:last-child { border-radius: 0 6px 0 0; text-align: right; }
+              tbody td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; font-size: 12px; }
+              tbody td:last-child { text-align: right; font-family: monospace; font-weight: 600; }
+              .totals { display: flex; justify-content: flex-end; margin: 20px 0; }
+              .totals-box { width: 280px; }
+              .totals-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 12px; color: #475569; }
+              .totals-row.total { border-top: 2px solid #e2e8f0; padding-top: 10px; margin-top: 6px; font-weight: 700; font-size: 14px; color: #0f172a; }
+              .totals-row.balance { background: #f2f8f9; padding: 10px 12px; border-radius: 6px; margin-top: 8px; font-weight: 700; color: #0f172a; border: 1px solid #e2e8f0; }
+              .totals-row .mono { font-family: monospace; }
+              .payment-row { color: #ef4444; font-weight: 500; }
+              .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: flex-end; }
+              .footer-left { font-size: 12px; color: #475569; line-height: 1.6; }
+              .footer-left .company { font-weight: 600; color: #0f172a; }
+              .footer-right { text-align: center; }
+              .footer-right img { width: 80px; height: 80px; border: 1px solid #e2e8f0; border-radius: 6px; padding: 4px; }
+              .qr-label { font-size: 10px; color: #94a3b8; margin-top: 4px; }
+              .powered-by { margin-top: 24px; padding-top: 12px; border-top: 1px solid #cbd5e1; font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; display: flex; justify-content: space-between; }
+              .powered-by .brand { font-weight: 700; color: #1c75bc; }
+              @media print { body { padding: 15px; } }
             </style>
           </head>
           <body>${printContent.innerHTML}</body>
           </html>
         `);
         printWindow.document.close();
-        setTimeout(() => { printWindow.print(); }, 500);
+        setTimeout(() => { printWindow.print(); }, 600);
       }
     }
   };

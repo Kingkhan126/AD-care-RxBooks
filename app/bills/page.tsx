@@ -1,17 +1,19 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FileText, Plus, Search, Printer, Edit2, Trash2, Package, Building2 } from 'lucide-react';
+import { FileText, Plus, Search, Printer, Edit2, Trash2, Package, Building2, CreditCard } from 'lucide-react';
 import { useADCare } from '@/lib/context';
 import { Bill, LineItem } from '@/lib/types';
 import { DocumentPrintModal } from '@/components/documents/DocumentPrintModal';
 
 export default function BillsPage() {
-  const { bills, contacts, items: catalogItems, addBill, updateBill, deleteBill } = useADCare();
+  const { bills, contacts, items: catalogItems, addBill, updateBill, deleteBill, recordBillPayment } = useADCare();
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingBill, setEditingBill] = useState<Bill | null>(null);
   const [selectedDoc, setSelectedDoc] = useState<Bill | null>(null);
+  const [payingBill, setPayingBill] = useState<Bill | null>(null);
+  const [payAmount, setPayAmount] = useState<number>(0);
 
   const vendors = contacts.filter(c => c.type === 'vendor');
   const [vendorId, setVendorId] = useState(vendors[0]?.id || '');
@@ -268,8 +270,18 @@ export default function BillsPage() {
                   className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg shadow-2xs transition-colors"
                 >
                   <Printer className="w-3.5 h-3.5" />
-                  <span>Print / View PDF</span>
+                  <span>View / Print</span>
                 </button>
+
+                {b.status !== 'paid' && (
+                  <button
+                    onClick={() => { setPayingBill(b); setPayAmount(b.balanceDue); }}
+                    className="flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg shadow-2xs transition-colors"
+                  >
+                    <CreditCard className="w-3.5 h-3.5" />
+                    <span>Pay</span>
+                  </button>
+                )}
 
                 <button
                   onClick={() => openEditModal(b)}
@@ -322,6 +334,15 @@ export default function BillsPage() {
                   </span>
                 </td>
                 <td className="p-4 text-right space-x-1">
+                  {b.status !== 'paid' && (
+                    <button
+                      onClick={() => { setPayingBill(b); setPayAmount(b.balanceDue); }}
+                      className="p-1.5 text-emerald-600 hover:text-emerald-700 rounded-md hover:bg-emerald-50 transition-colors"
+                      title="Record Payment"
+                    >
+                      <CreditCard className="w-4 h-4" />
+                    </button>
+                  )}
                   <button
                     onClick={() => openEditModal(b)}
                     className="p-1.5 text-slate-600 hover:text-indigo-600 rounded-md hover:bg-slate-100 transition-colors"
@@ -507,6 +528,51 @@ export default function BillsPage() {
           type="bill"
           onClose={() => setSelectedDoc(null)}
         />
+      )}
+
+      {/* Record Payment Modal */}
+      {payingBill && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 shadow-2xl w-full max-w-md space-y-4 border border-slate-200">
+            <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-emerald-600" />
+              Record Payment — {payingBill.billNumber}
+            </h3>
+            <div className="text-xs space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <div className="flex justify-between"><span className="text-slate-500">Vendor:</span><span className="font-semibold">{payingBill.vendorName}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">Total Amount:</span><span className="font-mono font-bold">PKR {payingBill.totalAmount.toLocaleString()}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">Already Paid:</span><span className="font-mono text-emerald-600">PKR {payingBill.amountPaid.toLocaleString()}</span></div>
+              <div className="flex justify-between border-t border-slate-200 pt-2"><span className="font-bold text-slate-900">Balance Due:</span><span className="font-mono font-bold text-rose-600">PKR {payingBill.balanceDue.toLocaleString()}</span></div>
+            </div>
+            <div>
+              <label className="font-bold text-slate-700 text-xs block mb-1">Payment Amount (PKR) *</label>
+              <input
+                type="number"
+                min="1"
+                max={payingBill.balanceDue}
+                step="0.01"
+                value={payAmount}
+                onChange={(e) => setPayAmount(parseFloat(e.target.value) || 0)}
+                className="w-full p-2.5 border border-slate-200 rounded-lg font-mono font-bold text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+              />
+            </div>
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button onClick={() => setPayingBill(null)} className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold text-xs transition-colors">Cancel</button>
+              <button
+                onClick={() => {
+                  if (payAmount > 0 && payAmount <= payingBill.balanceDue) {
+                    recordBillPayment(payingBill.id, payAmount);
+                    setPayingBill(null);
+                    setPayAmount(0);
+                  }
+                }}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold text-xs shadow-sm transition-colors"
+              >
+                Record Payment
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

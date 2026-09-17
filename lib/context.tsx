@@ -49,6 +49,7 @@ interface ADCareContextType {
   updateBill: (id: string, updatedData: Partial<Bill>, reason?: string) => void;
   updateBillStatus: (id: string, status: BillStatus) => void;
   deleteBill: (id: string) => void;
+  recordBillPayment: (billId: string, amount: number) => void;
 
   expenses: Expense[];
   addExpense: (exp: Omit<Expense, 'id' | 'expenseNumber'>) => void;
@@ -491,6 +492,22 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
+  const recordBillPayment = (billId: string, amount: number) => {
+    setBills(prev => prev.map(b => {
+      if (b.id === billId) {
+        const newPaid = b.amountPaid + amount;
+        const newBalance = Math.max(0, b.totalAmount - newPaid);
+        const newStatus: BillStatus = newBalance === 0 ? 'paid' : 'partially_paid';
+
+        setContacts(cList => cList.map(c => c.id === b.vendorId ? { ...c, payables: Math.max(0, c.payables - amount) } : c));
+
+        logAction('RECORD_BILL_PAYMENT', 'Purchases', `Recorded payment of PKR ${amount.toLocaleString()} for Bill ${b.billNumber}`);
+        return { ...b, amountPaid: newPaid, balanceDue: newBalance, status: newStatus };
+      }
+      return b;
+    }));
+  };
+
   const addExpense = (expData: Omit<Expense, 'id' | 'expenseNumber'>) => {
     const nextNum = expenses.length + 1;
     const expNum = `EXP-2026-${String(nextNum).padStart(3, '0')}`;
@@ -745,7 +762,7 @@ export const ADCareProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       items, addItem, updateItem,
       warehouses, addWarehouse,
       invoices, addInvoice, updateInvoice, updateInvoiceStatus, deleteInvoice, recordInvoicePayment,
-      bills, addBill, updateBill, updateBillStatus, deleteBill,
+      bills, addBill, updateBill, updateBillStatus, deleteBill, recordBillPayment,
       expenses, addExpense,
       bankAccounts, bankTransactions, reconcileTransaction,
       accounts, addAccount,
