@@ -43,11 +43,11 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
       {/* Styled Brand Text */}
       <div className="flex flex-col justify-center">
         <div className={`font-black tracking-tight font-sans flex items-center gap-1 ${textSizes[size]}`}>
-          <span className="text-[#3b558c] font-black">AD</span>
+          <span className={lightText ? 'text-white font-black' : 'text-[#3b558c] font-black'}>AD</span>
           <span className="text-[#61b849] font-black">CARE</span>
         </div>
         {showSubtitle && (
-          <div className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase">
+          <div className={`text-[10px] font-semibold tracking-wider uppercase ${lightText ? 'text-slate-300' : 'text-slate-400'}`}>
             Meds & Pharmacy
           </div>
         )}

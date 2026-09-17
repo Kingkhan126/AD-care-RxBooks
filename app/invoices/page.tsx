@@ -134,8 +134,103 @@ export default function InvoicesPage() {
         </div>
       </div>
 
-      {/* Invoices Table (Responsive Horizontal Scroll) */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-subtle overflow-x-auto">
+      {/* Mobile Card View (< md) */}
+      <div className="block md:hidden space-y-3">
+        {filteredInvoices.length === 0 ? (
+          <div className="bg-white p-6 rounded-xl border border-slate-200 text-center text-xs text-slate-500">
+            No invoices found.
+          </div>
+        ) : (
+          filteredInvoices.map((inv) => (
+            <div
+              key={inv.id}
+              className="bg-white rounded-xl border border-slate-200 p-4 shadow-subtle space-y-3"
+            >
+              {/* Card Header */}
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => setSelectedDoc(inv)}
+                  className="font-mono font-bold text-sm text-brand-600 hover:underline flex items-center gap-1.5"
+                >
+                  <Receipt className="w-4 h-4" />
+                  <span>{inv.invoiceNumber}</span>
+                </button>
+                <span className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase ${
+                  inv.status === 'paid' ? 'bg-emerald-100 text-emerald-700 border border-emerald-300' :
+                  inv.status === 'overdue' ? 'bg-rose-100 text-rose-700 border border-rose-300' :
+                  inv.status === 'partially_paid' ? 'bg-amber-100 text-amber-700 border border-amber-300' :
+                  'bg-blue-100 text-blue-700 border border-blue-300'
+                }`}>
+                  {inv.status.replace('_', ' ')}
+                </span>
+              </div>
+
+              {/* Card Content */}
+              <div className="grid grid-cols-2 gap-2 text-xs border-y border-slate-100 py-2.5">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Customer</span>
+                  <span className="font-semibold text-slate-900 truncate block">{inv.customerName}</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Amount</span>
+                  <span className="font-mono font-bold text-slate-900 block">
+                    PKR {inv.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Issue / Due Date</span>
+                  <span className="text-slate-500 text-[11px] block">{inv.issueDate}</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Balance Due</span>
+                  <span className={`font-mono font-bold text-[11px] block ${inv.balanceDue > 0 ? 'text-rose-600' : 'text-slate-400'}`}>
+                    PKR {inv.balanceDue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+              </div>
+
+              {/* Card Action Bar (Always visible on mobile) */}
+              <div className="flex items-center justify-between gap-2 pt-1">
+                <button
+                  onClick={() => setSelectedDoc(inv)}
+                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-lg shadow-2xs transition-colors"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Print / View PDF</span>
+                </button>
+
+                {inv.balanceDue > 0 && (
+                  <button
+                    onClick={() => handleOpenPayment(inv)}
+                    className="px-2.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg font-bold text-xs transition-colors"
+                  >
+                    Pay
+                  </button>
+                )}
+
+                <button
+                  onClick={() => openEditModal(inv)}
+                  className="p-2 text-slate-600 hover:text-brand-600 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
+                  title="Edit Invoice"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
+
+                <button
+                  onClick={() => deleteInvoice(inv.id)}
+                  className="p-2 text-slate-400 hover:text-rose-600 rounded-lg border border-slate-200 hover:bg-rose-50 transition-colors"
+                  title="Delete Invoice"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop Invoices Table (hidden on mobile, visible md+) */}
+      <div className="hidden md:block bg-white rounded-xl border border-slate-200 shadow-subtle overflow-x-auto">
         <table className="w-full text-xs text-left min-w-[700px]">
           <thead className="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold tracking-wider border-b border-slate-200">
             <tr>

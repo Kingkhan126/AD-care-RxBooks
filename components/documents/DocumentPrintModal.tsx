@@ -15,7 +15,7 @@ export const DocumentPrintModal: React.FC<DocumentPrintModalProps> = ({ document
   const { orgSettings, updateInvoice, updateBill, updateOrgSettings } = useADCare();
 
   const [isEditing, setIsEditing] = useState(false);
-  const [logoSrc, setLogoSrc] = useState<string>('');
+  const [logoSrc, setLogoSrc] = useState<string>('/logo.jpg');
   const [thankYouMsg, setThankYouMsg] = useState(orgSettings.thankYouMessage || 'Thank you for choosing AD CARE Meds & Pharmacy Online Home Service!');
 
   // Editable Document Fields
@@ -155,35 +155,43 @@ export const DocumentPrintModal: React.FC<DocumentPrintModalProps> = ({ document
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl overflow-hidden my-4 print:shadow-none print:m-0 print:w-full print:max-w-none">
         
         {/* Printable Control Bar (Hidden on print) */}
-        <div className="p-4 bg-slate-900 text-white space-y-3 print:hidden">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2 font-bold text-sm">
-              <Building2 className="w-4 h-4 text-brand-400" />
-              <span>AD CARE Official {type === 'bill' ? 'Vendor Bill' : 'Invoice'} Customizer</span>
+        <div className="sticky top-0 z-20 p-3 sm:p-4 bg-slate-900 text-white space-y-3 print:hidden shadow-md">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center justify-between sm:justify-start gap-2 font-bold text-xs sm:text-sm">
+              <div className="flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-brand-400 shrink-0" />
+                <span className="truncate">AD CARE {type === 'bill' ? 'Vendor Bill' : 'Invoice'}</span>
+              </div>
+              <button
+                onClick={onClose}
+                className="sm:hidden p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               {isEditing ? (
                 <button
                   onClick={handleSaveChanges}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold shadow-md transition-colors"
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold shadow-md transition-colors"
                 >
                   <Check className="w-4 h-4" />
-                  <span>Save Changes</span>
+                  <span>Save</span>
                 </button>
               ) : (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold shadow-md transition-colors"
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold shadow-md transition-colors"
                 >
                   <Edit3 className="w-4 h-4" />
-                  <span>Edit Document</span>
+                  <span>Edit</span>
                 </button>
               )}
 
               <button
                 onClick={handlePrint}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-bold shadow-md transition-colors"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-bold shadow-md transition-colors"
               >
                 <Printer className="w-4 h-4" />
                 <span>Print / Download PDF</span>
@@ -191,7 +199,7 @@ export const DocumentPrintModal: React.FC<DocumentPrintModalProps> = ({ document
 
               <button
                 onClick={onClose}
-                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10"
+                className="hidden sm:block p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10"
               >
                 <X className="w-5 h-5" />
               </button>
