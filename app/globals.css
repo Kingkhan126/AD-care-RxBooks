@@ -36,7 +36,10 @@
   body {
     background: white !important;
   }
-  aside, header, button {
+  aside, header, nav {
+    display: none !important;
+  }
+  .print:hidden {
     display: none !important;
   }
 }

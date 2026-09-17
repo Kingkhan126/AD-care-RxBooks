@@ -14,11 +14,11 @@ export const MainContentLayout: React.FC<{ children: React.ReactNode }> = ({ chi
       <Sidebar />
       <div
         className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${
-          isSidebarCollapsed ? 'md:pl-20' : 'md:pl-64'
-        } pl-0 overflow-hidden min-w-0 w-full`}
+          isSidebarCollapsed ? 'md:ml-20' : 'md:ml-64'
+        } ml-0 min-w-0 w-full`}
       >
         <Header />
-        <main className="flex-1 overflow-y-auto pt-16 p-3 sm:p-6 w-full max-w-full">
+        <main className="flex-1 overflow-y-auto pt-14 sm:pt-16 p-2 sm:p-4 md:p-6 w-full max-w-full">
           {children}
         </main>
       </div>

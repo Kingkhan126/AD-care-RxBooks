@@ -45,9 +45,9 @@ export const Header: React.FC = () => {
 
   return (
     <>
-      <header className={`h-16 bg-white border-b border-slate-200 fixed top-0 right-0 left-0 transition-all duration-300 ease-in-out ${
+      <header className={`h-14 sm:h-16 bg-white border-b border-slate-200 fixed top-0 right-0 left-0 transition-all duration-300 ease-in-out ${
         isSidebarCollapsed ? 'md:left-20' : 'md:left-64'
-      } z-20 px-3 sm:px-6 flex items-center justify-between shadow-subtle`}>
+      } z-20 px-2 sm:px-4 md:px-6 flex items-center justify-between shadow-subtle`}>
         {/* Mobile Hamburger & Title */}
         <div className="flex items-center gap-2 sm:gap-3">
           <button
