@@ -2,13 +2,15 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Receipt, Plus, Trash2, ArrowLeft, Save, Sparkles } from 'lucide-react';
+import { Receipt, Plus, Trash2, ArrowLeft, Save, CheckCircle, Printer } from 'lucide-react';
 import { useADCare } from '@/lib/context';
-import { LineItem } from '@/lib/types';
+import { LineItem, Invoice } from '@/lib/types';
+import { DocumentPrintModal } from '@/components/documents/DocumentPrintModal';
 
 export default function NewInvoicePage() {
   const router = useRouter();
   const { contacts, items: catalogItems, addInvoice, orgSettings } = useADCare();
+  const [savedInvoice, setSavedInvoice] = useState<Invoice | null>(null);
 
   const customers = contacts.filter(c => c.type === 'customer');
 
@@ -119,7 +121,7 @@ export default function NewInvoicePage() {
     const customer = customers.find(c => c.id === customerId);
     if (!customer) return;
 
-    addInvoice({
+    const newInv = addInvoice({
       customerId: customer.id,
       customerName: customer.companyName,
       customerEmail: customer.email,
@@ -137,11 +139,23 @@ export default function NewInvoicePage() {
       terms
     });
 
-    router.push('/invoices');
+    setSavedInvoice(newInv);
   };
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-12">
+      {/* Print Modal */}
+      {savedInvoice && (
+        <DocumentPrintModal
+          document={savedInvoice}
+          type="invoice"
+          onClose={() => {
+            setSavedInvoice(null);
+            router.push('/invoices');
+          }}
+        />
+      )}
+
       {/* Top Controls */}
       <div className="flex items-center justify-between">
         <button
