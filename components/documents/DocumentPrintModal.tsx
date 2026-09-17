@@ -46,7 +46,30 @@ export const DocumentPrintModal: React.FC<DocumentPrintModalProps> = ({ document
   const balanceDue = Math.max(0, totalAmount - amountPaid);
 
   const handlePrint = () => {
-    window.print();
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    if (printWindow) {
+      const printContent = document.querySelector('.print-document-area');
+      if (printContent) {
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Invoice - ${docNumber}</title>
+            <style>
+              body { font-family: 'Inter', Arial, sans-serif; margin: 0; padding: 20px; color: #1e293b; }
+              table { width: 100%; border-collapse: collapse; }
+              th { background: #2280c3; color: white; padding: 8px 12px; text-align: left; font-size: 12px; }
+              td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; font-size: 12px; }
+              @media print { body { padding: 0; } }
+            </style>
+          </head>
+          <body>${printContent.innerHTML}</body>
+          </html>
+        `);
+        printWindow.document.close();
+        setTimeout(() => { printWindow.print(); }, 500);
+      }
+    }
   };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -216,15 +239,15 @@ export const DocumentPrintModal: React.FC<DocumentPrintModalProps> = ({ document
         <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl mx-auto overflow-hidden print:shadow-none print:rounded-none print:max-w-none">
 
         {/* Printable Document Paper */}
-        <div className="p-6 sm:p-12 bg-white text-slate-900 font-sans print:p-0 min-h-[950px] flex flex-col justify-between">
+        <div className="print-document-area p-4 sm:p-6 md:p-8 lg:p-12 bg-white text-slate-900 font-sans print:p-0 min-h-[600px] sm:min-h-[950px] flex flex-col justify-between">
           
           <div>
             {/* 1. Header Section */}
-            <div className="flex items-start justify-between mb-8 gap-4">
+            <div className="flex flex-col sm:flex-row items-start justify-between mb-6 sm:mb-8 gap-3 sm:gap-4">
               {/* Left: Logo Box & Address */}
-              <div className="space-y-3 max-w-sm">
+              <div className="space-y-2 sm:space-y-3 w-full sm:max-w-sm">
                 {logoSrc ? (
-                  <div className="relative group max-w-[240px] max-h-[100px] flex items-center justify-center overflow-hidden mb-2">
+                  <div className="relative group max-w-[180px] sm:max-w-[240px] max-h-[70px] sm:max-h-[100px] flex items-center justify-center overflow-hidden mb-2">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={logoSrc}
@@ -275,8 +298,8 @@ export const DocumentPrintModal: React.FC<DocumentPrintModalProps> = ({ document
               </div>
 
               {/* Right: Title, Number & Balance Due Header */}
-              <div className="text-right space-y-2">
-                <h1 className="text-3xl sm:text-4xl font-extrabold text-[#1c75bc] tracking-wide uppercase font-sans">
+              <div className="text-left sm:text-right space-y-1.5 sm:space-y-2">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#1c75bc] tracking-wide uppercase font-sans">
                   INVOICE
                 </h1>
                 <div className="text-xs font-bold text-slate-900"># {docNumber}</div>
@@ -386,8 +409,8 @@ export const DocumentPrintModal: React.FC<DocumentPrintModalProps> = ({ document
             </div>
 
             {/* 3. Items Table */}
-            <div className="mb-6 overflow-x-auto">
-              <table className="w-full text-xs text-left border-collapse min-w-[600px]">
+            <div className="mb-4 sm:mb-6 overflow-x-auto -mx-1 px-1">
+              <table className="w-full text-xs text-left border-collapse" style={{ minWidth: '500px' }}>
                 <thead>
                   <tr className="bg-[#2280c3] text-white font-semibold text-xs">
                     <th className="py-2.5 px-3 w-10 text-center font-semibold">#</th>
@@ -486,8 +509,8 @@ export const DocumentPrintModal: React.FC<DocumentPrintModalProps> = ({ document
             </div>
 
             {/* 4. Totals Section */}
-            <div className="flex justify-end mb-12 text-xs">
-              <div className="w-80 space-y-2">
+            <div className="flex justify-end mb-6 sm:mb-12 text-xs">
+              <div className="w-full sm:w-80 space-y-2">
                 <div className="flex justify-between py-1 text-slate-700">
                   <span className="font-medium">Sub Total</span>
                   <span className="font-mono">{subtotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
@@ -558,10 +581,10 @@ export const DocumentPrintModal: React.FC<DocumentPrintModalProps> = ({ document
             </div>
           </div>
 
-          {/* 5. Footer & Legal Section */}
-          <div className="pt-6 space-y-6">
+            {/* 5. Footer & Legal Section */}
+          <div className="pt-4 sm:pt-6 space-y-4 sm:space-y-6">
             {/* Flex container for Thank You message (left) and WhatsApp QR Code (right bottom corner) */}
-            <div className="flex items-end justify-between gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3 sm:gap-4">
               {/* Left Side: Thank You Message & Contact Details in Normal Clean Font */}
               <div className="space-y-1.5 max-w-md">
                 <div className="text-xs sm:text-sm font-medium text-slate-800 leading-relaxed">
